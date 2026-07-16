@@ -1,6 +1,6 @@
 <div align="center">
 
-# sd-phone
+# sd-phone (THIS IS A BETA RELEASE, WILL HAVE ISSUES)
 
 **An iOS-themed smartphone for FiveM. 45+ server-backed apps, real app accounts, a live game-view camera, online multiplayer games, and drop-in lb-phone compatibility.**
 
