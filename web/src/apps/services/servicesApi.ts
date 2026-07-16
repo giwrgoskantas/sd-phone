@@ -120,7 +120,7 @@ const DEV_INBOX: Inbox = {
             preview: 'On our way.', ts: Date.now() - 60_000, unread: 1,
             messages: [
                 { id: 'd1', from: 'me',   body: 'Is anyone available to help me?', ts: Date.now() - 120_000 },
-                { id: 'd2', from: 'them', name: 'Officer Breze', body: 'On our way.', ts: Date.now() - 60_000 },
+                { id: 'd2', from: 'them', name: 'Officer Marcus', body: 'On our way.', ts: Date.now() - 60_000 },
             ],
         },
     ],

@@ -29,8 +29,8 @@ export const COMPANIES: Company[] = [
 ];
 
 export const EMPLOYEES: Employee[] = [
-    { id: 'e1', name: 'Breze',        rank: 'Officer',    online: true,  status: 'duty'    },
-    { id: 'e2', name: 'Loaf Scripts', rank: 'Sergeant',   online: true,  status: 'offduty' },
+    { id: 'e1', name: 'Marcus',       rank: 'Officer',    online: true,  status: 'duty'    },
+    { id: 'e2', name: 'Tommy V',      rank: 'Sergeant',   online: true,  status: 'offduty' },
     { id: 'e3', name: 'Kash',         rank: 'Lieutenant', online: false, status: 'away'    },
 ];
 

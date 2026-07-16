@@ -54,17 +54,17 @@ export const REPOST = '#00ba7c';
 export const BG     = '#e5e5e5';
 export const PILL   = '#d9d9d9';
 
-export const CURRENT_USER: BirdyAuthor = { name: 'LB',          handle: 'lb',    verified: true };
-export const BREZE:        BirdyAuthor = { name: 'Breze',       handle: 'breze', verified: false };
-export const LOAF:         BirdyAuthor = { name: 'Loaf Scripts', handle: 'loaf', verified: false };
+export const CURRENT_USER: BirdyAuthor = { name: 'Los Santos',  handle: 'lossantos', verified: true };
+export const MARCUS:       BirdyAuthor = { name: 'Marcus',      handle: 'marcus', verified: false };
+export const TOMMY:        BirdyAuthor = { name: 'Tommy V',     handle: 'tommy',  verified: false };
 
 export const MAX_POST_LENGTH = 280;
 
 const HOUR = 3_600_000;
 
-const BREZE_REPLY: BirdyPost = {
+const MARCUS_REPLY: BirdyPost = {
     id:        'reply-1',
-    author:    BREZE,
+    author:    MARCUS,
     body:      'finally, been waiting for this for ages!',
     createdAt: Date.now() - 2 * HOUR,
     replies:   0,
@@ -77,18 +77,18 @@ export const SEED_POSTS: BirdyPost[] = [
     {
         id:        'seed-1',
         author:    CURRENT_USER,
-        body:      'LB Phone 2.0 is now released! Check it out at https://lbscripts.com',
+        body:      'Just got my new phone set up and honestly this thing is slick',
         createdAt: Date.now() - 2 * HOUR,
         replies:   1,
         reposts:   0,
         likes:     4,
         liked:     false,
         views:     2,
-        thread:    [BREZE_REPLY],
+        thread:    [MARCUS_REPLY],
     },
     {
         id:        'seed-2',
-        author:    BREZE,
+        author:    MARCUS,
         body:      'wow, the birdy app really is cool',
         createdAt: Date.now() - 3 * HOUR,
         replies:   0,
@@ -116,10 +116,10 @@ export type BirdyNotification =
     | { id: string; kind: 'follow'; user: BirdyAuthor };
 
 export const SEED_NOTIFICATIONS: BirdyNotification[] = [
-    { id: 'n1', kind: 'reply',  post: BREZE_REPLY },
-    { id: 'n2', kind: 'like',   user: LOAF, text: 'liked your post', post: SEED_POSTS[0] },
-    { id: 'n3', kind: 'follow', user: LOAF },
-    { id: 'n4', kind: 'follow', user: BREZE },
+    { id: 'n1', kind: 'reply',  post: MARCUS_REPLY },
+    { id: 'n2', kind: 'like',   user: TOMMY, text: 'liked your post', post: SEED_POSTS[0] },
+    { id: 'n3', kind: 'follow', user: TOMMY },
+    { id: 'n4', kind: 'follow', user: MARCUS },
 ];
 
 export interface BirdyMessage {
@@ -153,7 +153,7 @@ const MIN = 60_000;
 export const SEED_CONVERSATIONS: BirdyConversation[] = [
     {
         id:      'c1',
-        user:    BREZE,
+        user:    MARCUS,
         updated: '5h',
         unread:  1,
         messages: [
@@ -162,7 +162,7 @@ export const SEED_CONVERSATIONS: BirdyConversation[] = [
     },
     {
         id:      'c2',
-        user:    LOAF,
+        user:    TOMMY,
         updated: '1d',
         messages: [
             { id: 'm2', fromMe: false, body: 'hey, loved the latest release',   at: 'Yesterday', ts: Date.now() - 26 * HOUR },

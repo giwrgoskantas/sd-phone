@@ -11,7 +11,7 @@ import devPfp3 from '@/assets/photos/background6.webp';
 import devPfp4 from '@/assets/photos/background11.webp';
 import devPfp5 from '@/assets/photos/background16.webp';
 import {
-    BREZE, CURRENT_USER, LOAF, newId, SEED_CONVERSATIONS, SEED_NOTIFICATIONS, SEED_POSTS,
+    MARCUS, CURRENT_USER, TOMMY, newId, SEED_CONVERSATIONS, SEED_NOTIFICATIONS, SEED_POSTS,
     type BirdyAuthor, type BirdyConversation, type BirdyFollowUser, type BirdyMessage, type BirdyNotification, type BirdyPost, type BirdyProfile,
 } from './data';
 
@@ -124,15 +124,15 @@ export async function apiDmReact(messageId: string, emoji: string): Promise<Reac
 }
 
 const DEV_PROFILE: BirdyProfile = {
-    name: 'LB', handle: 'lb', verified: true,
-    bio: 'Official LB account\nhttps://lbphone.com',
+    name: 'Los Santos', handle: 'lossantos', verified: true,
+    bio: 'Just living the Los Santos life',
     joined: 'May 2021', following: 4, followers: 5, protected: false,
     banner: devBanner,
 };
 
 const DEV_FOLLOWERS: BirdyFollowUser[] = [
-    { name: 'Breze',         handle: 'breze',  verified: false, bio: 'Developer @lb',                 avatar: devPfp1, followsYou: true,  isFollowing: true },
-    { name: 'Loaf Scripts',  handle: 'loaf',   verified: false, bio: 'Developer @lb',                 avatar: devPfp2, followsYou: false, isFollowing: true },
+    { name: 'Marcus',        handle: 'marcus', verified: false, bio: 'Sandy Shores local',            avatar: devPfp1, followsYou: true,  isFollowing: true },
+    { name: 'Tommy V',       handle: 'tommy',  verified: false, bio: 'Vinewood dreamer',              avatar: devPfp2, followsYou: false, isFollowing: true },
     { name: 'Los Santos Gov', handle: 'lspd',  verified: false, bio: 'Official government account',   avatar: devPfp3, followsYou: false, isFollowing: true },
     { name: 'Marina V.',     handle: 'marina', verified: false, bio: 'Photography · coffee · code',   avatar: devPfp4, followsYou: false, isFollowing: true },
     { name: '/dev/null',     handle: 'devnull', verified: false, bio: 'I swallow bugs for a living',  avatar: devPfp5, followsYou: false, isFollowing: true },
@@ -151,7 +151,7 @@ const DEV_DMS: BirdyConversation[] = DEV_FOLLOWING
 export async function apiProfile(handle?: string): Promise<BirdyProfile> {
     if (!isFiveM) {
         if (handle && handle !== CURRENT_USER.handle) {
-            const a = [BREZE, LOAF].find(x => x.handle === handle);
+            const a = [MARCUS, TOMMY].find(x => x.handle === handle);
             return { name: a?.name ?? handle, handle, verified: a?.verified ?? false, bio: '', joined: 'May 2021', following: 0, followers: 0, protected: false, banner: devBannerAlt, isMe: false, isFollowing: false };
         }
         return { ...DEV_PROFILE, isMe: true, isFollowing: false };
@@ -175,7 +175,7 @@ export async function apiSearch(query: string): Promise<BirdyAuthor[]> {
     const q = query.trim().toLowerCase();
     if (!q) return [];
     if (!isFiveM) {
-        return [CURRENT_USER, BREZE, LOAF].filter(a => a.handle.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
+        return [CURRENT_USER, MARCUS, TOMMY].filter(a => a.handle.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
     }
     return (await call<{ users: BirdyAuthor[] }>('sd-phone:birdy:search', { query }))?.users ?? [];
 }

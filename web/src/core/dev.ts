@@ -73,8 +73,8 @@ export function devInjectMockData(): () => void {
     }, '*');
 
     const seedNotifs = [
-        { id: 'seed-vibez',    app: 'vibez',    appId: 'vibez',    title: 'breze',          body: 'hey',                                        time: '11 Jun' },
-        { id: 'seed-messages', app: 'messages', appId: 'messages', title: 'Loaf scripts',   body: 'Sure Thing!',                                time: '13:15'  },
+        { id: 'seed-vibez',    app: 'vibez',    appId: 'vibez',    title: 'Marcus',         body: 'hey',                                        time: '11 Jun' },
+        { id: 'seed-messages', app: 'messages', appId: 'messages', title: 'Tommy V',        body: 'Sure Thing!',                                time: '13:15'  },
         { id: 'seed-garages',  app: 'garages',  appId: 'garages',  title: 'Vehicle Update', body: 'Your vehicle (ABC 123) is ready for pickup', time: '15:14'  },
     ];
     const seedTimers = seedNotifs.map((n, i) =>

@@ -87,7 +87,7 @@ function mapConvo(c: SrvConvo): Conversation {
 
 
 const DEV_ME: ProfileView = {
-    username: 'lb', name: 'Los Santos', bio: 'living the city life · dm for collabs 📍',
+    username: 'lossantos', name: 'Los Santos', bio: 'living the city life · dm for collabs 📍',
     avatar: MY_POSTS[0], verified: true, isPrivate: false, isMe: true, followStatus: 'self',
     followsMe: false, posts: MY_POSTS.length, followers: 1243, following: 312, locked: false,
 };
@@ -109,7 +109,7 @@ export async function apiProfilePosts(handle?: string): Promise<Post[]> {
     if (!isFiveM) {
         const who = handle ?? DEV_ME.username;
         if (who !== DEV_ME.username) return [];
-        return MY_POSTS.map((url, i) => ({ id: `mine-${i}`, user: { id: 'me', handle: 'lb', avatar: DEV_ME.avatar, verified: true }, images: [url], caption: '', likes: 0, comments: 0, time: '' }));
+        return MY_POSTS.map((url, i) => ({ id: `mine-${i}`, user: { id: 'me', handle: 'lossantos', avatar: DEV_ME.avatar, verified: true }, images: [url], caption: '', likes: 0, comments: 0, time: '' }));
     }
     return (await call<{ posts: SrvPost[] }>('sd-phone:photogram:profilePosts', handle ? { handle } : undefined))?.posts.map(mapPost) ?? [];
 }
@@ -144,7 +144,7 @@ export async function apiPost(id: string): Promise<{ post: Post; comments: Comme
 
 export async function apiCreate(images: string[], caption: string, location?: string): Promise<Post | null> {
     if (!isFiveM) {
-        return { id: 'new-' + Date.now(), user: { id: 'me', handle: 'lb', avatar: DEV_ME.avatar, verified: true }, images, caption, location, likes: 0, comments: 0, time: 'Just now' };
+        return { id: 'new-' + Date.now(), user: { id: 'me', handle: 'lossantos', avatar: DEV_ME.avatar, verified: true }, images, caption, location, likes: 0, comments: 0, time: 'Just now' };
     }
     const r = await call<{ post: SrvPost }>('sd-phone:photogram:create', { images, caption, location });
     return r?.post ? mapPost(r.post) : null;
@@ -178,7 +178,7 @@ export async function apiComments(postId: string): Promise<Comment[]> {
 
 export async function apiAddComment(postId: string, c: { text?: string; gifUrl?: string }): Promise<{ comment: Comment; count: number } | null> {
     if (!isFiveM) {
-        return { comment: { id: 'me-' + Date.now(), user: { id: 'me', handle: 'lb', avatar: DEV_ME.avatar, verified: true }, time: 'now', text: c.text, gifUrl: c.gifUrl }, count: (COMMENTS[postId]?.length ?? 0) + 1 };
+        return { comment: { id: 'me-' + Date.now(), user: { id: 'me', handle: 'lossantos', avatar: DEV_ME.avatar, verified: true }, time: 'now', text: c.text, gifUrl: c.gifUrl }, count: (COMMENTS[postId]?.length ?? 0) + 1 };
     }
     const r = await call<{ comment: SrvComment; count: number }>('sd-phone:photogram:addComment', { postId, ...c });
     return r?.comment ? { comment: mapComment(r.comment), count: r.count } : null;
@@ -250,7 +250,7 @@ export async function apiLiveStart(): Promise<{ liveId: string; startedAt: numbe
 }
 
 export async function apiLiveJoin(liveId: string): Promise<LiveJoin | null> {
-    if (!isFiveM) return { liveId, host: { id: 'lb', handle: 'lb', avatar: '', verified: true }, viewers: 1, startedAt: Date.now() };
+    if (!isFiveM) return { liveId, host: { id: 'lossantos', handle: 'lossantos', avatar: '', verified: true }, viewers: 1, startedAt: Date.now() };
     const r = await call<LiveJoin>('sd-phone:photogram:liveJoin', { liveId });
     return r ? { ...r, host: fixUser(r.host) } : null;
 }

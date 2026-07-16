@@ -14,7 +14,7 @@ const SR         = 49;
 const CARD_W     = 362;
 const CARD_H     = Math.round(SH * CARD_W / SW);
 const SCALE      = CARD_W / SW;
-const CARD_STEP  = Math.round(CARD_W * 0.74);   // overlap so the focused card sits forward (lb-phone style)
+const CARD_STEP  = Math.round(CARD_W * 0.74);   // overlap so the focused card sits forward
 const CENTER     = (SW - CARD_W) / 2;
 const COMMIT_PX  = CARD_STEP * 0.25;   // easier to page: drop the drag threshold
 const FLICK_VX   = 0.35;               // px/ms - a quick flick pages even on a short drag
@@ -236,7 +236,7 @@ export function AppSwitcher({
                             : 1;
 
                     // Focused card sits forward: larger, full brightness, on top; neighbours are
-                    // smaller and dimmed - lb-phone's "highlighted centre card" look. `d` is the
+                    // smaller and dimmed - the "highlighted centre card" look. `d` is the
                     // signed distance from centre and shifts live with the drag. Scaling from the
                     // top keeps every card's name/icon row on the same line.
                     const d       = (idx - focusedIdx) + dragX / CARD_STEP;
@@ -303,7 +303,7 @@ export function AppSwitcher({
                                     {appDef?.label ?? appId}
                                 </span>
 
-                                {/* Close: lb-phone style - to the RIGHT of the name, a larger
+                                {/* Close: to the RIGHT of the name, a larger
                                     circular glass button. Translucent over the switcher's own blur
                                     (no per-button backdrop-filter - it nests under the switcher blur
                                     and flickers in CEF). */}

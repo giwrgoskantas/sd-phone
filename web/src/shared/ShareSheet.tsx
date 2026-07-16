@@ -14,7 +14,7 @@ export interface ShareTarget { id: number; name: string }
 type SendState = 'sending' | 'sent' | 'failed';
 
 async function fetchNearby(): Promise<ShareTarget[]> {
-    if (!isFiveM) return [{ id: 1, name: 'Breze' }, { id: 2, name: 'Loaf Scripts' }, { id: 3, name: 'Mike' }];
+    if (!isFiveM) return [{ id: 1, name: 'Marcus' }, { id: 2, name: 'Tommy V' }, { id: 3, name: 'Mike' }];
     return (await apiData<{ targets: ShareTarget[] }>('sd-phone:share:nearby'))?.targets ?? [];
 }
 
