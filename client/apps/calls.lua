@@ -15,6 +15,19 @@ local function pushCall(action, data)
     SendNUIMessage({ action = action, data = data })
 end
 
+---Applies the phone's call-volume setting (0-100) to pma-voice so it controls how loud the other
+---party sounds. pcall-guarded for non-pma-voice setups.
+---@param data { volume: number } clamped 0-100
+---@param cb fun(ok: string) NUI response
+RegisterNUICallback('sd-phone:call:setVolume', function(data, cb)
+    local volume = tonumber(data and data.volume)
+    if volume then
+        if volume < 0 then volume = 0 elseif volume > 100 then volume = 100 end
+        pcall(function() exports['pma-voice']:setCallVolume(volume) end)
+    end
+    cb('ok')
+end)
+
 ---Incoming call: forces the phone open, waits briefly for the React tree to mount, then pushes
 ---the ringing payload.
 ---@param data table incoming-call payload from the server

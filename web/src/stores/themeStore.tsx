@@ -152,7 +152,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     chatTextScale: isFiveM ? 1 : loadChatScaleLocal(),
     phoneAlign: 'bottom-right',
     ringtoneVol: 40,
-    callVol: 45,
+    callVol: 60,
     airplaneMode: false,
     hour24: false,
     ringtone: DEFAULT_RINGTONE,
@@ -202,7 +202,10 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     },
     setCallVol: (v) => {
         set({ callVol: v });
-        if (isFiveM) void fetchNui('sd-phone:settings:setVolumes', { ringtone: get().ringtoneVol, call: v }).catch(() => {});
+        if (isFiveM) {
+            void fetchNui('sd-phone:settings:setVolumes', { ringtone: get().ringtoneVol, call: v }).catch(() => {});
+            void fetchNui('sd-phone:call:setVolume', { volume: v }).catch(() => {});
+        }
     },
 
     setChatTextScale: (v) => {
@@ -310,6 +313,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
                 patch.customRingtones         = ring;
                 patch.customNotificationTones = notif;
                 set(patch);
+                if (isFiveM) void fetchNui('sd-phone:call:setVolume', { volume: get().callVol }).catch(() => {});
                 const ringIsYt  = !!d.ringtone         && ring.some(c => c.id === d.ringtone);
                 const notifIsYt = !!d.notificationTone && notif.some(c => c.id === d.notificationTone);
                 if (ringIsYt || notifIsYt) warmYouTube();
