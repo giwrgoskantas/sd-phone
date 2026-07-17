@@ -3,6 +3,12 @@ local player = require 'bridge.server.player'
 ---@type table Settings persistence layer (server.settings.store): phone_settings row CRUD plus
 ---custom tones and per-app notification prefs, all keyed by citizenid.
 local store  = require 'server.settings.store'
+---@type table Accounts engine persistence (server.accounts.store): session rows for the factory reset.
+local accounts = require 'server.accounts.store'
+---@type table Mail persistence layer (server.mail.store): per-mailbox sessions for the factory reset.
+local mail = require 'server.mail.store'
+---@type table Badge recompute-and-push (server.badges.init).
+local badges = require 'server.badges.init'
 
 -- Schema bootstrap.
 CreateThread(function()
@@ -151,6 +157,21 @@ lib.callback.register('sd-phone:server:settings:tones:remove', function(source, 
     if not cid then return { success = false, message = 'Player not found' } end
     payload = type(payload) == 'table' and payload or {}
     store.removeCustomTone(cid, payload.id)
+    return { success = true }
+end)
+
+---Factory reset (Settings > Erase All Content): uninstalls every downloadable app, clears the
+---saved home layout, and signs the caller out of all app accounts and mailboxes.
+lib.callback.register('sd-phone:server:settings:factoryReset', function(source)
+    local cid = player.getIdentifier(source)
+    if not cid then return { success = false, message = 'Player not found' } end
+    store.setInstalledApps(cid, {})
+    store.setHomeLayout(cid, '')
+    accounts.clearAllSessions(cid)
+    for _, acc in ipairs(mail.listAccountsForCitizen(cid)) do
+        mail.removeSession(acc.email, cid)
+    end
+    badges.push(source)
     return { success = true }
 end)
 

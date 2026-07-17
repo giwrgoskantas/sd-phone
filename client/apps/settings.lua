@@ -16,3 +16,4 @@ proxyCallback('sd-phone:settings:setChatTextScale', 'sd-phone:server:settings:se
 proxyCallback('sd-phone:settings:setLocale',        'sd-phone:server:settings:setLocale')
 proxyCallback('sd-phone:settings:getNotifPref', 'sd-phone:server:settings:getNotifPref')
 proxyCallback('sd-phone:settings:setNotifPref', 'sd-phone:server:settings:setNotifPref')
+proxyCallback('sd-phone:settings:factoryReset', 'sd-phone:server:settings:factoryReset')

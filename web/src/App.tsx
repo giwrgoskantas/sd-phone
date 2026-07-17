@@ -816,6 +816,9 @@ function AppContent() {
             resetAuth();
             useMusicLibrary.getState().reset();
             useLocaleStore.getState().hydrate();
+            void fetchNui('sd-phone:settings:factoryReset');
+            setInstalledApps(new Set());
+            setSavedLayout(null);
         }
         setCurrentApp(null);
         setLaunchOrigin(null);
