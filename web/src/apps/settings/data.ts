@@ -67,12 +67,3 @@ export function getSettingsGroups(): SettingsGroup[] {
         },
     ];
 }
-
-export function getProfile() {
-    return {
-        name:     "SD's Phone",
-        avatar:   '#8e8e93',
-        initials: 'SD',
-        subtitle: t('settings.importFromPhone', 'Import from Phone'),
-    };
-}

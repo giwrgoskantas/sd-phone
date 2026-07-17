@@ -3,7 +3,6 @@ import { useSessionState } from '@/hooks/useSessionState';
 import { DisplayBrightnessPage } from './appearance/DisplayBrightnessPage';
 import { FaceUnlockPage } from './security/FaceUnlockPage';
 import { GeneralPage } from './general/GeneralPage';
-import { ImportFromPhonePage } from './account/ImportFromPhonePage';
 import { NotificationsPage } from './notifications/NotificationsPage';
 import { PhoneSettingsPage } from './security/PhoneSettingsPage';
 import { ProfileCard } from './account/ProfileCard';
@@ -15,7 +14,7 @@ import { SettingsGroup } from './SettingsGroup';
 import { PushLayer } from './SettingsSubPage';
 import { WallpaperPage } from './appearance/WallpaperPage';
 
-type SubPage = 'general' | 'display' | 'wallpaper' | 'notifications' | 'sound-haptics' | 'face-unlock' | 'phone' | 'import' | null;
+type SubPage = 'general' | 'display' | 'wallpaper' | 'notifications' | 'sound-haptics' | 'face-unlock' | 'phone' | null;
 
 export function Settings({ onClose }: { onClose: () => void }) {
     const [subPage, setSubPage] = useSessionState<SubPage>('settings:subPage', null);
@@ -51,7 +50,6 @@ export function Settings({ onClose }: { onClose: () => void }) {
         : subPage === 'sound-haptics' ? <SoundHapticsPage      onBack={handleBack} />
         : subPage === 'face-unlock'   ? <FaceUnlockPage        onBack={handleBack} />
         : subPage === 'phone'         ? <PhoneSettingsPage     onBack={handleBack} />
-        : subPage === 'import'        ? <ImportFromPhonePage   onBack={handleBack} />
         : null;
 
     return (
@@ -85,7 +83,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
                     </div>
                 ) : (
                     <>
-                        <ProfileCard onPress={() => { setQuery(''); setSubPage('import'); }} />
+                        <ProfileCard />
                         <div className="mt-6 flex flex-col gap-6 pb-10">
                             {settingsGroups.map(group => (
                                 <SettingsGroup

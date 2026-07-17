@@ -1,27 +1,29 @@
-import { ChevronRight } from 'lucide-react';
+import { useEffect } from 'react';
 
-import { getProfile } from '../data';
+import { useContacts } from '@/stores/contactsStore';
+import { initialsFor } from '@/lib/format';
+import { t } from '@/i18n';
 
-export function ProfileCard({ onPress }: { onPress?: () => void }) {
-    const profile = getProfile();
+export function ProfileCard() {
+    const { myName, card, load } = useContacts('myName', 'card', 'load');
+    useEffect(() => { void load(); }, [load]);
+
+    const name = card.name || myName || t('settings.myPhone', 'My Phone');
+    const avatar = '#8e8e93';
+
     return (
-        <button
-            type="button"
-            onClick={onPress}
-            className="mx-4 mt-3 flex w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface px-3 py-3 text-left active:bg-black/5 dark:active:bg-white/5"
-        >
+        <div className="mx-4 mt-3 flex w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface px-3 py-3 text-left">
             <div
                 className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full text-[24px] font-semibold text-white shadow-sm"
-                style={{ background: `linear-gradient(135deg, ${profile.avatar} 0%, ${shade(profile.avatar, -20)} 100%)` }}
+                style={{ background: `linear-gradient(135deg, ${avatar} 0%, ${shade(avatar, -20)} 100%)` }}
             >
-                {profile.initials}
+                {initialsFor(name)}
             </div>
             <div className="min-w-0 flex-1">
-                <div className="truncate text-[20px] font-semibold text-black dark:text-white">{profile.name}</div>
-                <div className="truncate text-[13px] font-normal text-ios-gray">{profile.subtitle}</div>
+                <div className="truncate text-[20px] font-semibold text-black dark:text-white">{name}</div>
+                <div className="truncate text-[13px] font-normal text-ios-gray">{t('settings.thisIsYourPhone', 'This is your phone')}</div>
             </div>
-            <ChevronRight className="h-[17px] w-[17px] shrink-0 text-ios-gray3" strokeWidth={2.5} />
-        </button>
+        </div>
     );
 }
 
