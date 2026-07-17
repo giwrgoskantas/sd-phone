@@ -60,7 +60,7 @@ export function RecentsTab({ recents, onAddContact, onRequestCall, onUpdateConta
                                 title={filter === 'missed' ? t('phone.noMissedCalls','No Missed Calls') : t('phone.noRecentCalls','No Recent Calls')}
                                 subtitle={t('phone.recentsSub','Calls you make and receive will show up here.')} />
                         ) : (
-                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                                 {list.map((entry, i) => (
                                     <div key={entry.id}>
                                         <CallRow entry={entry} onBody={requestCall} onInfo={openProfile} />
@@ -146,14 +146,14 @@ function RecentAvatar({ entry }: { entry: CallEntry }) {
     }
     if (entry.noCallerId) {
         return (
-            <div className="flex shrink-0 items-center justify-center rounded-full bg-[#c2c2c7] dark:bg-[#48484a]" style={{ width: size, height: size }}>
+            <div className="flex shrink-0 items-center justify-center rounded-full bg-[#c2c2c7] dark:bg-control" style={{ width: size, height: size }}>
                 <UserRound className="h-[30px] w-[30px] text-white/90" strokeWidth={1.6} fill="currentColor" />
             </div>
         );
     }
     return (
         <div
-            className="flex shrink-0 items-center justify-center rounded-full bg-[#b6b6bb] text-white/90 dark:bg-[#48484a]"
+            className="flex shrink-0 items-center justify-center rounded-full bg-[#b6b6bb] text-white/90 dark:bg-control"
             style={{ width: size, height: size, fontSize: size * 0.34, fontWeight: 600 }}
         >
             ??

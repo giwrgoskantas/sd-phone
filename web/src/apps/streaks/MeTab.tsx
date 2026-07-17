@@ -219,7 +219,7 @@ export function MeTab({ state, config, dark, posting, onPost, onOpenRewards }: {
                     onClose={() => setSheetOpen(false)}
                     forceDark={dark}
                     top={628}
-                    className="font-sf bg-[#d4d4d4] text-black dark:bg-black dark:text-white"
+                    className="font-sf bg-[#d4d4d4] text-black dark:bg-base dark:text-white"
                 >
                     {({ close }) => (
                         <div className="flex h-full flex-col px-5 pb-9 pt-7">
@@ -230,7 +230,7 @@ export function MeTab({ state, config, dark, posting, onPost, onOpenRewards }: {
                                 maxLength={config.maxCaptionLength}
                                 rows={3}
                                 placeholder={t('streaks.captionPlaceholder', 'Say something about today (optional)')}
-                                className="ios-scrollbar w-full resize-none rounded-[14px] bg-[#e5e5e5] px-4 py-3.5 text-[18px] leading-snug text-black placeholder-black/80 outline-none dark:bg-[#1C1C1E] dark:text-white dark:placeholder-white/65"
+                                className="ios-scrollbar w-full resize-none rounded-[14px] bg-[#e5e5e5] px-4 py-3.5 text-[18px] leading-snug text-black placeholder-black/80 outline-none dark:bg-surface dark:text-white dark:placeholder-white/65"
                             />
                             <div className="mt-1.5 text-right text-[12px] font-semibold opacity-50">
                                 {caption.length}/{config.maxCaptionLength}

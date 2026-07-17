@@ -110,7 +110,7 @@ function CompanyCard({ company, onLocate, onCall, onMessage }: {
     onMessage: () => void;
 }) {
     return (
-        <div className="flex items-center gap-4 rounded-[16px] bg-[#e5e5e5] px-4 py-4 dark:bg-[#1c1c1e]">
+        <div className="flex items-center gap-4 rounded-[16px] bg-[#e5e5e5] px-4 py-4 dark:bg-surface">
             <ServiceAvatar color={company.color} emoji={company.emoji} size={58} />
 
             <div className="min-w-0 flex-1">

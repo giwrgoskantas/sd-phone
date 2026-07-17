@@ -89,7 +89,7 @@ export function ConversationList({ conversations, onOpen, onCompose, onMarkRead,
     }
 
     return (
-        <div className="flex flex-1 flex-col bg-[#d4d4d4] dark:bg-black overflow-hidden">
+        <div className="flex flex-1 flex-col bg-[#d4d4d4] dark:bg-base overflow-hidden">
             <div className="h-[54px] shrink-0" aria-hidden />
 
             <div className="flex items-center justify-between px-5 pb-0.5">
@@ -113,7 +113,7 @@ export function ConversationList({ conversations, onOpen, onCompose, onMarkRead,
                         ? <EmptyState icon={SearchX} title={t('messages.noResults', 'No Results')} subtitle={t('messages.noResultsSubtitle', 'No conversations match your search.')} />
                         : <EmptyState icon={MessageCircle} title={t('messages.noConversations', 'No Conversations')} subtitle={t('messages.noConversationsSubtitle', 'Tap the compose button to start a new message.')} />
                 ) : (
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {filtered.map((c, i) => (
                             <div key={c.id}>
                                 <ConvRow
@@ -135,7 +135,7 @@ export function ConversationList({ conversations, onOpen, onCompose, onMarkRead,
             {(editing || barExiting) && (
                 <div
                     onAnimationEnd={e => { if (e.animationName === 'ios-sheet-down') setBarExiting(false); }}
-                    className="flex shrink-0 items-center justify-between border-t border-black/10 bg-[#d4d4d4] px-7 pb-9 pt-3.5 dark:border-white/10 dark:bg-black"
+                    className="flex shrink-0 items-center justify-between border-t border-black/10 bg-[#d4d4d4] px-7 pb-9 pt-3.5 dark:border-white/10 dark:bg-base"
                     style={{ animation: barExiting
                         ? 'ios-sheet-down 0.26s cubic-bezier(0.32,0,0.68,1) forwards'
                         : 'ios-sheet-up 0.3s cubic-bezier(0.32,0.72,0,1)' }}

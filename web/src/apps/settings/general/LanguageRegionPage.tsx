@@ -55,7 +55,7 @@ function LanguagePickerPage({
 }) {
     const { goBack, pageStyle } = useIosPush(onBack);
     return (
-        <div className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-black" style={pageStyle}>
+        <div className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-base" style={pageStyle}>
             <div className="h-11 shrink-0" aria-hidden />
             <NavBar backLabel={t('settings.languageRegion', 'Language & Region')} onBack={goBack} title={t('settings.language', 'Language')} hairline />
             <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -74,7 +74,7 @@ function LanguagePickerPage({
                                 )}
                                 {i < SUPPORTED_LOCALES.length - 1 && (
                                     <div
-                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                                         style={{ left: 0, height: '0.5px' }}
                                     />
                                 )}

@@ -95,7 +95,7 @@ function BlockedContactsPage({ onBack }: { onBack: () => void }) {
 
     return (
         <div
-            className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={pageStyle}
         >
             <div className="h-11 shrink-0" aria-hidden />
@@ -114,12 +114,12 @@ function BlockedContactsPage({ onBack }: { onBack: () => void }) {
                         {t('settings.blockedContacts', 'Blocked Contacts')}
                     </span>
                 </div>
-                <div className="absolute inset-x-0 bottom-0 h-[0.5px] bg-[#C6C6C8] dark:bg-[#38383A]" />
+                <div className="absolute inset-x-0 bottom-0 h-[0.5px] bg-[#C6C6C8] dark:bg-control" />
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar">
                 <div className="mt-6 flex flex-col gap-6 px-4 pb-10">
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {blocked.map((b, i) => (
                             <div
                                 key={b.id}
@@ -137,7 +137,7 @@ function BlockedContactsPage({ onBack }: { onBack: () => void }) {
                                 </button>
                                 {i < blocked.length - 1 && (
                                     <div
-                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                                         style={{ left: 0, height: '0.5px' }}
                                     />
                                 )}
@@ -147,7 +147,7 @@ function BlockedContactsPage({ onBack }: { onBack: () => void }) {
                         <button
                             type="button"
                             onClick={addNumber}
-                            className={`flex w-full items-center gap-2 px-4 py-3 active:bg-black/5 dark:active:bg-white/5 ${blocked.length > 0 ? 'border-t border-ios-gray4 dark:border-[#38383A]' : ''}`}
+                            className={`flex w-full items-center gap-2 px-4 py-3 active:bg-black/5 dark:active:bg-white/5 ${blocked.length > 0 ? 'border-t border-ios-gray4 dark:border-control' : ''}`}
                             style={blocked.length > 0 ? { borderTopWidth: '0.5px' } : undefined}
                         >
                             <div className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-ios-green">

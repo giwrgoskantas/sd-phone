@@ -81,7 +81,7 @@ export function EmojiPanel({ isDark, onSelect }: Props) {
 
     return (
         <div
-            className="flex flex-col bg-[#F2F2F7] dark:bg-[#1C1C1E] border-t border-black/[0.08] dark:border-white/[0.08]"
+            className="flex flex-col bg-[#F2F2F7] dark:bg-surface border-t border-black/[0.08] dark:border-white/[0.08]"
             style={{ height: 380 }}
         >
             <div

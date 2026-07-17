@@ -35,7 +35,7 @@ export function FavoritesTab({ favorites, onRemoveFavorite, onRequestCall, onUpd
                         <EmptyState icon={Star} title={t('phone.noFavorites','No Favorites')}
                             subtitle={t('phone.noFavoritesSub','Add a contact to Favorites for quick, one-tap calling.')} />
                     ) : (
-                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                             {favorites.map((c, i) => (
                                 <div key={c.id}>
                                     <FavoriteRow

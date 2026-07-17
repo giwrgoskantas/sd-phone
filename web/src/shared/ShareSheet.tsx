@@ -42,7 +42,7 @@ export function ShareSheet({ onClose, onShare, children, top = '55%' }: {
     }
 
     return (
-        <Sheet onClose={onClose} top={top} durationMs={240} className="font-sf bg-[#ececec] dark:bg-[#1c1c1e]">
+        <Sheet onClose={onClose} top={top} durationMs={240} className="font-sf bg-[#ececec] dark:bg-surface">
             {() => (
                 <>
                 <div className="px-4 pt-5">
@@ -58,7 +58,7 @@ export function ShareSheet({ onClose, onShare, children, top = '55%' }: {
                                     <button key={target.id} type="button" onClick={() => void send(target)} className="flex w-[76px] shrink-0 flex-col items-center active:opacity-70">
                                         <span className="relative">
                                             <InitialsAvatar name={target.name} color={colorFor(target.name)} size={64} />
-                                            <span className="absolute -bottom-0.5 -right-0.5 flex h-[24px] w-[24px] items-center justify-center rounded-full bg-black/10 ring-2 ring-[#ececec] dark:bg-white/15 dark:ring-[#1c1c1e]">
+                                            <span className="absolute -bottom-0.5 -right-0.5 flex h-[24px] w-[24px] items-center justify-center rounded-full bg-black/10 ring-2 ring-[#ececec] dark:bg-white/15 dark:ring-surface">
                                                 <Smartphone className="h-[13px] w-[13px] text-black/60 dark:text-white/70" />
                                             </span>
                                         </span>

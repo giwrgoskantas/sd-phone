@@ -29,7 +29,7 @@ export function ImportFromPhonePage({ onBack }: { onBack: () => void }) {
 
     return (
         <div
-            className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={pageStyle}
         >
             <div className="h-11 shrink-0" aria-hidden />
@@ -57,7 +57,7 @@ export function ImportFromPhonePage({ onBack }: { onBack: () => void }) {
                         <p className="mb-2 px-1 text-[13px] uppercase tracking-wider text-ios-gray">
                             {t('settings.yourProfile', 'Your Profile')}
                         </p>
-                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                             <button
                                 type="button"
                                 onClick={createBackup}
@@ -74,7 +74,7 @@ export function ImportFromPhonePage({ onBack }: { onBack: () => void }) {
                         <p className="mb-2 px-1 text-[13px] uppercase tracking-wider text-ios-gray">
                             {t('settings.imports', 'Imports')}
                         </p>
-                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                             {imports.length === 0 && (
                                 <div className="px-4 py-3">
                                     <span className="text-[15px] text-ios-gray">{t('settings.noImports', 'No imports')}</span>
@@ -99,7 +99,7 @@ export function ImportFromPhonePage({ onBack }: { onBack: () => void }) {
                                     </span>
                                     {i < imports.length - 1 && (
                                         <div
-                                            className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                                            className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                                             style={{ left: 0, height: '0.5px' }}
                                         />
                                     )}

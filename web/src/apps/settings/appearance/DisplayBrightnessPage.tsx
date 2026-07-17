@@ -1,33 +1,42 @@
 import { useState } from 'react';
-import { Check, Minus, Moon, Plus, Sun } from 'lucide-react';
+import { Check, ChevronRight, Minus, Moon, Plus, Sun } from 'lucide-react';
 
 import { t } from '@/i18n';
 import { useIosPush } from '@/hooks/useIosPush';
 import { useTheme } from '@/stores/themeStore';
-import type { PhoneAlign } from '@/stores/themeStore';
+import type { PhoneAlign, DarkTheme } from '@/stores/themeStore';
 import { NavBar } from '@/ui/NavBar';
 import { Toggle } from '@/ui/Toggle';
+import { DarkAppearancePage } from './DarkAppearancePage';
+
+const DARK_THEME_LABEL: Record<DarkTheme, string> = {
+    graphite: t('settings.darkGraphite', 'Graphite'),
+    black:    t('settings.darkBlack', 'Black'),
+    warm:     t('settings.darkWarm', 'Warm'),
+};
 
 export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
     const { goBack, pageStyle } = useIosPush(onBack);
     const {
         theme, setTheme,
+        darkTheme,
         brightness, setBrightness,
         phoneScale, setPhoneScale,
         chatTextScale, setChatTextScale,
         phoneAlign, setPhoneAlign,
-    } = useTheme('theme', 'setTheme', 'brightness', 'setBrightness', 'phoneScale', 'setPhoneScale', 'chatTextScale', 'setChatTextScale', 'phoneAlign', 'setPhoneAlign');
+    } = useTheme('theme', 'setTheme', 'darkTheme', 'brightness', 'setBrightness', 'phoneScale', 'setPhoneScale', 'chatTextScale', 'setChatTextScale', 'phoneAlign', 'setPhoneAlign');
 
     const isDark     = theme === 'dark';
     const trackEmpty = isDark ? '#3A3A3C' : '#E5E5EA';
     const [auto, setAuto] = useState(true);
+    const [darkAppearanceOpen, setDarkAppearanceOpen] = useState(false);
 
     const CHAT_MIN = 0.8, CHAT_MAX = 1.5;
     const chatFill = ((chatTextScale - CHAT_MIN) / (CHAT_MAX - CHAT_MIN)) * 100;
 
     return (
         <div
-            className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white"
+            className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white"
             style={pageStyle}
         >
             <div className="h-11 shrink-0" aria-hidden />
@@ -46,7 +55,7 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                         <p className="mb-2 text-[12px] uppercase tracking-widest text-ios-gray">
                             {t('settings.appearance', 'Appearance')}
                         </p>
-                        <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                        <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface">
                             <div className="flex justify-center gap-6 px-4 pb-4 pt-5">
                                 <ThumbButton
                                     label={t('settings.light', 'Light')}
@@ -64,7 +73,7 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                                 </ThumbButton>
                             </div>
 
-                            <div className="h-[0.5px] bg-ios-gray4 dark:bg-[#38383A]" />
+                            <div className="h-[0.5px] bg-ios-gray4 dark:bg-control" />
 
                             <button
                                 type="button"
@@ -82,10 +91,32 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                     </section>
 
                     <section>
+                        <div className={`overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface ${isDark ? '' : 'opacity-45'}`}>
+                            <button
+                                type="button"
+                                disabled={!isDark}
+                                onClick={() => setDarkAppearanceOpen(true)}
+                                className="flex w-full items-center px-4 py-3 text-left enabled:active:bg-black/5 dark:enabled:active:bg-white/5"
+                            >
+                                <span className="flex-1 text-[17px] font-normal text-black dark:text-white">
+                                    {t('settings.darkAppearance', 'Dark Appearance')}
+                                </span>
+                                <span className="mr-1 text-[17px] font-normal text-ios-gray">{DARK_THEME_LABEL[darkTheme]}</span>
+                                <ChevronRight className="h-[17px] w-[17px] shrink-0 text-ios-gray3" strokeWidth={2.5} />
+                            </button>
+                        </div>
+                        <p className="mt-1.5 px-1 text-[12px] leading-snug text-ios-gray">
+                            {isDark
+                                ? t('settings.darkAppearanceHint', 'Choose the shade of dark mode used across the whole phone.')
+                                : t('settings.darkAppearanceHintLight', 'Turn on Dark above to choose a dark-mode shade.')}
+                        </p>
+                    </section>
+
+                    <section>
                         <p className="mb-2 text-[12px] uppercase tracking-widest text-ios-gray">
                             {t('settings.brightness', 'Brightness')}
                         </p>
-                        <div className="flex items-center gap-3 rounded-[12px] bg-[#e5e5e5] dark:bg-[#1C1C1E] px-4 py-3">
+                        <div className="flex items-center gap-3 rounded-[12px] bg-[#e5e5e5] dark:bg-surface px-4 py-3">
                             <Moon className="h-[17px] w-[17px] shrink-0 text-ios-gray" fill="currentColor" stroke="none" />
                             <input
                                 type="range"
@@ -103,7 +134,7 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                         <p className="mb-2 text-[12px] uppercase tracking-widest text-ios-gray">
                             {t('settings.phoneScale', 'Phone Scale')}
                         </p>
-                        <div className="flex items-center gap-3 rounded-[12px] bg-[#e5e5e5] dark:bg-[#1C1C1E] px-4 py-3">
+                        <div className="flex items-center gap-3 rounded-[12px] bg-[#e5e5e5] dark:bg-surface px-4 py-3">
                             <Minus className="h-[18px] w-[18px] shrink-0 text-ios-gray" strokeWidth={2.5} />
                             <input
                                 type="range"
@@ -121,7 +152,7 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                         <p className="mb-2 text-[12px] uppercase tracking-widest text-ios-gray">
                             {t('settings.chatTextSize', 'Chat Text Size')}
                         </p>
-                        <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                        <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface">
                             <div className="flex flex-col gap-2 px-4 pb-4 pt-4">
                                 <div
                                     className="max-w-[78%] self-start rounded-2xl rounded-bl-md px-[14px] py-[8px] leading-[1.3]"
@@ -137,7 +168,7 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                                 </div>
                             </div>
 
-                            <div className="h-[0.5px] bg-ios-gray4 dark:bg-[#38383A]" />
+                            <div className="h-[0.5px] bg-ios-gray4 dark:bg-control" />
 
                             <div className="flex items-center gap-3 px-4 py-3">
                                 <span className="shrink-0 text-[15px] font-semibold text-ios-gray">A</span>
@@ -161,7 +192,7 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
                         <p className="mb-2 text-[12px] uppercase tracking-widest text-ios-gray">
                             {t('settings.phonePosition', 'Phone Position')}
                         </p>
-                        <div className="flex flex-col items-center gap-3 rounded-[12px] bg-[#e5e5e5] dark:bg-[#1C1C1E] px-4 py-4">
+                        <div className="flex flex-col items-center gap-3 rounded-[12px] bg-[#e5e5e5] dark:bg-surface px-4 py-4">
                             <PositionPicker value={phoneAlign} onChange={setPhoneAlign} isDark={isDark} />
                             <span className="text-[13px] text-ios-gray">
                                 {ALIGN_LABEL[phoneAlign]}
@@ -174,10 +205,10 @@ export function DisplayBrightnessPage({ onBack }: { onBack: () => void }) {
 
                 </div>
             </div>
+            {darkAppearanceOpen && <DarkAppearancePage onBack={() => setDarkAppearanceOpen(false)} />}
         </div>
     );
 }
-
 
 const ALIGN_LABEL: Record<PhoneAlign, string> = {
     'top-left':      t('settings.alignTopLeft', 'Top Left'),
@@ -303,7 +334,7 @@ function ThumbButton({
                 'flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 transition-colors',
                 selected
                     ? 'border-ios-blue bg-ios-blue'
-                    : 'border-[#C6C6C8] dark:border-[#636366] bg-transparent',
+                    : 'border-[#C6C6C8] dark:border-control bg-transparent',
             ].join(' ')}>
                 {selected && <Check className="h-[11px] w-[11px] text-white" strokeWidth={3} />}
             </div>

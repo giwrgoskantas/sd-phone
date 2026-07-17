@@ -8,7 +8,7 @@ export function ProfileCard({ onPress }: { onPress?: () => void }) {
         <button
             type="button"
             onClick={onPress}
-            className="mx-4 mt-3 flex w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E] px-3 py-3 text-left active:bg-black/5 dark:active:bg-white/5"
+            className="mx-4 mt-3 flex w-[calc(100%-2rem)] items-center gap-3 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface px-3 py-3 text-left active:bg-black/5 dark:active:bg-white/5"
         >
             <div
                 className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full text-[24px] font-semibold text-white shadow-sm"

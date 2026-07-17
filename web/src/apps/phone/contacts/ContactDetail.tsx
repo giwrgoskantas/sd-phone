@@ -75,7 +75,7 @@ export function ContactDetail({ contact, onBack, backLabel = t('phone.contacts',
 
     return (
         <div
-            className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={{
                 transform:  shown ? 'translateX(0)' : 'translateX(100%)',
                 transition: 'transform 0.32s cubic-bezier(0.32,0.72,0,1)',
@@ -105,7 +105,7 @@ export function ContactDetail({ contact, onBack, backLabel = t('phone.contacts',
                     <ActionButton label={t('phone.actionShare','share')}   onClick={() => setSharing(true)} icon={<Share className="h-[28px] w-[28px]" strokeWidth={2} />} />
                 </div>
 
-                <div className="mb-4 flex items-center rounded-[10px] bg-[#e5e5e5] px-4 py-3 dark:bg-[#1C1C1E]">
+                <div className="mb-4 flex items-center rounded-[10px] bg-[#e5e5e5] px-4 py-3 dark:bg-surface">
                     <div className="min-w-0 flex-1">
                         <div className="text-[13px] text-black/80 dark:text-white/80">{t('phone.phoneLabel','phone')}</div>
                         <div className="truncate text-[19px] text-ios-blue">{formatPhone(current.phone)}</div>
@@ -127,14 +127,14 @@ export function ContactDetail({ contact, onBack, backLabel = t('phone.contacts',
                 </div>
 
                 {(current.email || current.address) && (
-                    <div className="mb-4 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="mb-4 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {current.email && <InfoField label={t('phone.email','email')} value={current.email} divider={!!current.address} />}
                         {current.address && <InfoField label={t('phone.address','address')} value={current.address} divider={false} />}
                     </div>
                 )}
 
                 {!minimal && (
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <ActionRow label={t('phone.shareMyLocation','Share my Location')} onClick={() => setConfirmLocation(true)} />
                         <Divider />
                         <ActionRow
@@ -214,8 +214,8 @@ function ActionButton({ icon, label, disabled, onClick }: { icon: ReactNode; lab
             onClick={onClick}
             className={`flex flex-1 flex-col items-center gap-2 rounded-[12px] py-4 ${
                 disabled
-                    ? 'bg-[#e5e5e5]/60 text-ios-gray dark:bg-[#1C1C1E]/60'
-                    : 'bg-[#e5e5e5] text-ios-blue active:opacity-70 dark:bg-[#1C1C1E]'
+                    ? 'bg-[#e5e5e5]/60 text-ios-gray dark:bg-surface/60'
+                    : 'bg-[#e5e5e5] text-ios-blue active:opacity-70 dark:bg-surface'
             }`}
         >
             {icon}

@@ -9,6 +9,23 @@
 
 .dark {
     --ios-gray: 161 161 168;
+    --base:      11 11 13;
+    --surface:   28 28 30;
+    --elevated:  44 44 46;
+    --control:   58 58 60;
+}
+.dark[data-dark-theme="black"] {
+    --base:       0 0 0;
+    --surface:   22 22 24;
+    --elevated:  35 35 37;
+    --control:   49 49 52;
+}
+.dark[data-dark-theme="warm"] {
+    --ios-gray: 154 151 145;
+    --base:      12 11 10;
+    --surface:   29 28 27;
+    --elevated:  44 43 41;
+    --control:   58 57 55;
 }
 
 html, body, #root {

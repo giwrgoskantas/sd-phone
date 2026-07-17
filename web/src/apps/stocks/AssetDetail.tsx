@@ -61,8 +61,8 @@ export function AssetDetail({ asset, onBack, onBuy, onSell, onRefresh, animateIn
     }
 
 
-    const pageBg = isDark ? '#000000' : '#d4d4d4';
-    const cardBg = isDark ? '#1c1c1e' : '#e5e5e5';
+    const pageBg = isDark ? 'rgb(var(--base))' : '#d4d4d4';
+    const cardBg = isDark ? 'rgb(var(--surface))' : '#e5e5e5';
 
     const held  = snap.units > 0;
     const value = holdingValue(snap);

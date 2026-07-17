@@ -15,7 +15,7 @@ export function SegmentedControl<T extends string>({ value, onChange, options, c
                     onClick={() => onChange(opt.value)}
                     className={`flex-1 rounded-[8px] py-1.5 text-[15px] font-medium transition-colors ${
                         value === opt.value
-                            ? 'bg-white text-black shadow-sm dark:bg-[#636366] dark:text-white'
+                            ? 'bg-white text-black shadow-sm dark:bg-control dark:text-white'
                             : 'text-black/80 dark:text-white/80'
                     }`}
                 >

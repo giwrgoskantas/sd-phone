@@ -59,9 +59,9 @@ export function ServiceComposer({ isDark, onSend }: {
 
     const hasContent = draft.trim().length > 0 || attachments.length > 0;
 
-    const trayBg  = isDark ? '#1C1C1E' : '#d4d4d4';
-    const btnBg   = isDark ? '#2C2C2E' : '#fff';
-    const pillBg  = isDark ? '#1C1C1E' : '#d4d4d4';
+    const trayBg  = isDark ? 'rgb(var(--surface))' : '#d4d4d4';
+    const btnBg   = isDark ? 'rgb(var(--elevated))' : '#fff';
+    const pillBg  = isDark ? 'rgb(var(--surface))' : '#d4d4d4';
     const pillBdr = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)';
 
     return (

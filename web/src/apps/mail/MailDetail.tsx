@@ -27,7 +27,7 @@ export function MailDetail({ msg, backLabel, onBack, onToggleFlag, onDelete, onM
 
     return (
         <div
-            className="absolute inset-0 z-30 flex flex-col bg-white dark:bg-black text-black dark:text-white"
+            className="absolute inset-0 z-30 flex flex-col bg-white dark:bg-base text-black dark:text-white"
             style={pageStyle}
         >
             <div className="h-[54px] shrink-0" aria-hidden />
@@ -101,7 +101,7 @@ export function MailDetail({ msg, backLabel, onBack, onToggleFlag, onDelete, onM
                 </div>
             </div>
 
-            <div className="absolute inset-x-0 bottom-7 flex items-center justify-around border-t border-black/10 bg-white/80 px-4 py-[18px] backdrop-blur-xl dark:border-white/10 dark:bg-[#1c1c1e]/80">
+            <div className="absolute inset-x-0 bottom-7 flex items-center justify-around border-t border-black/10 bg-white/80 px-4 py-[18px] backdrop-blur-xl dark:border-white/10 dark:bg-surface/80">
                 <ActionBtn
                     label={t('mail.flag', 'Flag')}
                     icon={Flag}

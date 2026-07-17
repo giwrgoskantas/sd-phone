@@ -27,6 +27,13 @@ module.exports = {
                     gray5:   '#e5e5ea',
                     gray6:   '#f2f2f7',
                 },
+                // Dark-mode surface ramp. Only used behind the `dark:` variant;
+                // the selectable dark palette (Graphite/Black/Warm) swaps the
+                // channels in index.css by data-dark-theme.
+                base:     'rgb(var(--base) / <alpha-value>)',
+                surface:  'rgb(var(--surface) / <alpha-value>)',
+                elevated: 'rgb(var(--elevated) / <alpha-value>)',
+                control:  'rgb(var(--control) / <alpha-value>)',
                 // Translucent surface tokens for the dock, control center,
                 // notification cards. Backed by `backdrop-blur` in JSX.
                 glass: {

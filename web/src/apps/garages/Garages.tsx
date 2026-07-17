@@ -68,7 +68,7 @@ export function Garages({ onClose: _onClose }: { onClose: () => void }) {
         : vehicles;
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="h-[58px] shrink-0" aria-hidden />
 
             <div className="px-5 pb-2 pt-1">
@@ -116,7 +116,7 @@ function VehicleThumb({ v, show, size, radius, iconSize, iconStroke = 2 }: {
     const showImg = show && !!v.image && !failed;
     return (
         <div
-            className={`flex shrink-0 items-center justify-center overflow-hidden ${showImg ? 'bg-[#dcdcdc] dark:bg-[#2a2a2c]' : ''}`}
+            className={`flex shrink-0 items-center justify-center overflow-hidden ${showImg ? 'bg-[#dcdcdc] dark:bg-elevated' : ''}`}
             style={{ width: size, height: size, borderRadius: radius, background: showImg ? undefined : v.accent }}
         >
             {showImg ? (
@@ -151,7 +151,7 @@ function VehicleCard({ v, showImages, onOpen }: { v: Vehicle; showImages: boolea
         <button
             type="button"
             onClick={onOpen}
-            className="block w-full rounded-[18px] bg-[#e5e5e5] px-[18px] py-[17px] text-left shadow-[0_1px_3px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] active:bg-black/[0.03] dark:bg-[#1c1c1e] dark:shadow-none dark:ring-white/[0.06] dark:active:bg-white/[0.04]"
+            className="block w-full rounded-[18px] bg-[#e5e5e5] px-[18px] py-[17px] text-left shadow-[0_1px_3px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] active:bg-black/[0.03] dark:bg-surface dark:shadow-none dark:ring-white/[0.06] dark:active:bg-white/[0.04]"
         >
             <div className="flex items-center gap-3.5">
                 <VehicleThumb v={v} show={showImages} size={50} radius={14} iconSize={28} />
@@ -239,7 +239,7 @@ function VehicleDetail({ v, showImages, onBack, animateIn = true }: { v: Vehicle
     );
 
     return (
-        <div className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black" style={pageStyle}>
+        <div className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base" style={pageStyle}>
             <div className="h-[58px] shrink-0" aria-hidden />
 
             <NavBar backLabel={t('garages.title', 'Garages')} onBack={goBack} />
@@ -275,14 +275,14 @@ function VehicleDetail({ v, showImages, onBack, animateIn = true }: { v: Vehicle
                 </div>
 
                 <SectionLabel>{t('garages.condition', 'Condition')}</SectionLabel>
-                <div className="overflow-hidden rounded-[14px] bg-[#e5e5e5] px-4 py-1 ring-1 ring-black/[0.04] dark:bg-[#1c1c1e] dark:ring-white/[0.06]">
+                <div className="overflow-hidden rounded-[14px] bg-[#e5e5e5] px-4 py-1 ring-1 ring-black/[0.04] dark:bg-surface dark:ring-white/[0.06]">
                     <StatBar icon={<Fuel className="h-[20px] w-[20px]" strokeWidth={2.2} />}  label={t('garages.fuel', 'Fuel')}   value={v.fuel} />
                     <StatBar icon={<Gauge className="h-[20px] w-[20px]" strokeWidth={2.2} />} label={t('garages.engine', 'Engine')} value={v.engine} divider />
                     <StatBar icon={<Shield className="h-[20px] w-[20px]" strokeWidth={2.2} />} label={t('garages.body', 'Body')}  value={v.body} divider />
                 </div>
 
                 <SectionLabel>{t('garages.details', 'Details')}</SectionLabel>
-                <div className="overflow-hidden rounded-[14px] bg-[#e5e5e5] ring-1 ring-black/[0.04] dark:bg-[#1c1c1e] dark:ring-white/[0.06]">
+                <div className="overflow-hidden rounded-[14px] bg-[#e5e5e5] ring-1 ring-black/[0.04] dark:bg-surface dark:ring-white/[0.06]">
                     <Row label={t('garages.location', 'Location')} value={v.location} icon={<MapPin className="h-[18px] w-[18px]" strokeWidth={2.2} />} onAction={v.waypoint ? setWaypoint : undefined} />
                     <Row label={t('garages.homeGarage', 'Home garage')} value={v.garage} divider />
                     <Row label={t('garages.plate', 'Plate')} value={v.plate} mono divider />

@@ -96,7 +96,7 @@ export function MailboxList({
     const composeDisabled = !activeAccount;
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white">
             <div className="h-[58px] shrink-0" aria-hidden />
 
             <div className="flex items-center justify-between px-5 pb-0.5">
@@ -146,7 +146,7 @@ export function MailboxList({
                 onPointerCancel={onHandlePointerUp}
             >
                 {activeAccount && (
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {folderOrder.map((id, i) => {
                             const Icon  = FOLDER_ICONS[id];
                             const count = unreadCount(messages, id, activeAccount.id);
@@ -208,7 +208,7 @@ export function MailboxList({
                     <button
                         type="button"
                         onClick={onChangePassword}
-                        className="mt-6 w-full rounded-[10px] bg-[#e5e5e5] py-4 text-center text-[18px] font-semibold text-ios-blue active:bg-black/5 dark:bg-[#1C1C1E] dark:active:bg-white/5"
+                        className="mt-6 w-full rounded-[10px] bg-[#e5e5e5] py-4 text-center text-[18px] font-semibold text-ios-blue active:bg-black/5 dark:bg-surface dark:active:bg-white/5"
                     >
                         {t('mail.changePassword', 'Change Password')}
                     </button>
@@ -217,7 +217,7 @@ export function MailboxList({
                 <button
                     type="button"
                     onClick={() => setConfirmOut(true)}
-                    className={`${activeAccount ? 'mt-3' : 'mt-6'} w-full rounded-[10px] bg-[#e5e5e5] py-4 text-center text-[18px] font-semibold text-ios-red active:bg-black/5 dark:bg-[#1C1C1E] dark:active:bg-white/5`}
+                    className={`${activeAccount ? 'mt-3' : 'mt-6'} w-full rounded-[10px] bg-[#e5e5e5] py-4 text-center text-[18px] font-semibold text-ios-red active:bg-black/5 dark:bg-surface dark:active:bg-white/5`}
                 >
                     {t('mail.signOutOfMail', 'Sign out of Mail')}
                 </button>

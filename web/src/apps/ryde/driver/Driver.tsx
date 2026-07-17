@@ -20,7 +20,7 @@ function when(ms: number): string {
 
 export function Driver() {
     const g = useRyde();
-    if (!g.authChecked) return <div className="absolute inset-0 bg-[#d4d4d4] dark:bg-black" />;
+    if (!g.authChecked) return <div className="absolute inset-0 bg-[#d4d4d4] dark:bg-base" />;
     if (!g.authed) return <SignedOut />;
     if (!g.driver.enabled) return <Signup />;
     return <Dashboard />;
@@ -29,7 +29,7 @@ export function Driver() {
 function SignedOut() {
     const g = useRyde();
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="shrink-0 px-5 pb-2" style={{ paddingTop: 'calc(var(--safe-top) + 10px)' }}>
                 <h1 className="text-[34px] font-bold tracking-tight text-black dark:text-white">{t('ryde.drive', 'Drive')}</h1>
             </div>
@@ -59,7 +59,7 @@ function Signup() {
     const [color, setColor] = useState(CAR_COLORS[0]);
     const [picking, setPicking] = useState(false);
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="shrink-0 px-5 pb-2" style={{ paddingTop: 'calc(var(--safe-top) + 10px)' }}>
                 <h1 className="text-[34px] font-bold tracking-tight text-black dark:text-white">{t('ryde.drive', 'Drive')}</h1>
             </div>
@@ -69,7 +69,7 @@ function Signup() {
                     <h2 className="text-[23px] font-extrabold tracking-tight text-black dark:text-white">{t('ryde.earnOnYourSchedule', 'Earn on your schedule')}</h2>
                     <p className="mt-1 text-[15px] text-ios-gray">{t('ryde.setUpVehicle', 'Set up your vehicle to start accepting rides.')}</p>
                 </div>
-                <div className="rounded-[12px] bg-[#e5e5e5] p-4 dark:bg-[#1C1C1E]">
+                <div className="rounded-[12px] bg-[#e5e5e5] p-4 dark:bg-surface">
                     <button
                         onClick={() => setPicking(true)}
                         className="flex w-full items-center justify-center gap-2 rounded-[12px] bg-black/[0.06] py-3 text-[15px] font-semibold text-black active:opacity-70 dark:bg-white/10 dark:text-white"
@@ -117,7 +117,7 @@ function Dashboard() {
     const [showRequests, setShowRequests] = useState(false);
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="shrink-0 px-5 pb-2" style={{ paddingTop: 'calc(var(--safe-top) + 10px)' }}>
                 <h1 className="text-[34px] font-bold tracking-tight text-black dark:text-white">{t('ryde.drive', 'Drive')}</h1>
             </div>
@@ -151,7 +151,7 @@ function Dashboard() {
                         <button
                             onClick={() => { if (d.online) setShowRequests(true); }}
                             disabled={!d.online}
-                            className={'mb-3.5 flex w-full items-center justify-between rounded-[16px] bg-[#e5e5e5] px-4 py-3 shadow-sm dark:bg-[#1C1C1E] ' + (d.online ? 'active:opacity-80' : 'opacity-50')}
+                            className={'mb-3.5 flex w-full items-center justify-between rounded-[16px] bg-[#e5e5e5] px-4 py-3 shadow-sm dark:bg-surface ' + (d.online ? 'active:opacity-80' : 'opacity-50')}
                         >
                             <span className="flex items-center gap-2.5 text-[16px] font-semibold text-black dark:text-white">
                                 <Inbox className="h-[20px] w-[20px]" strokeWidth={2.2} /> {t('ryde.rideRequests', 'Ride requests')}
@@ -173,7 +173,7 @@ function Dashboard() {
 
                         <button
                             onClick={() => setConfirmUnregister(true)}
-                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#e5e5e5] py-3.5 text-[16px] font-semibold text-ios-red shadow-sm active:opacity-70 dark:bg-[#1C1C1E]"
+                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#e5e5e5] py-3.5 text-[16px] font-semibold text-ios-red shadow-sm active:opacity-70 dark:bg-surface"
                         >
                             <Car className="h-[18px] w-[18px]" strokeWidth={2.3} /> {t('ryde.unregisterVehicle', 'Unregister vehicle')}
                         </button>
@@ -202,7 +202,7 @@ function Dashboard() {
                         ) : (
                             <div className="space-y-4">
                                 {trips.map(r => (
-                                    <div key={r.id} className="rounded-[18px] bg-[#e5e5e5] p-[18px] dark:bg-[#1C1C1E]">
+                                    <div key={r.id} className="rounded-[18px] bg-[#e5e5e5] p-[18px] dark:bg-surface">
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
                                                 <p className="truncate text-[22px] font-bold text-black dark:text-white">{r.riderName ?? t('ryde.rider', 'Rider')}</p>
@@ -259,7 +259,7 @@ function TripStars({ value }: { value: number }) {
 
 function Stat({ icon, iconBg, label, value, sub, small }: { icon: React.ReactNode; iconBg: string; label: string; value: string; sub?: string; small?: boolean }) {
     return (
-        <div className="flex h-full flex-col rounded-[16px] bg-[#e5e5e5] p-4 dark:bg-[#1C1C1E]">
+        <div className="flex h-full flex-col rounded-[16px] bg-[#e5e5e5] p-4 dark:bg-surface">
             <div className="mb-2.5 flex h-[34px] w-[34px] items-center justify-center rounded-[10px] shadow-sm" style={{ background: iconBg }}>
                 {icon}
             </div>

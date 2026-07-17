@@ -9,7 +9,7 @@ export function SettingsGroup({ group, onRowPress }: { group: SettingsGroupDef; 
                     {group.title}
                 </div>
             )}
-            <div className="mx-4 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+            <div className="mx-4 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                 {group.rows.map((r, i) => (
                     <SettingsRow
                         key={r.id}

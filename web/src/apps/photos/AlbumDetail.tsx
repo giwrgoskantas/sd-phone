@@ -35,7 +35,7 @@ export function AlbumDetail({
     }
 
     return (
-        <div className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-black" style={pageStyle}>
+        <div className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-base" style={pageStyle}>
             <div className="h-[54px] shrink-0" aria-hidden />
             <div className="flex h-11 shrink-0 items-center justify-between px-2">
                 <button type="button" onClick={goBack} className="flex items-center text-ios-blue">
@@ -86,7 +86,7 @@ export function AlbumDetail({
             </div>
 
             {isCustom && selectMode && (
-                <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/10 bg-[#f7f7f7]/95 px-4 pb-7 pt-3 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
+                <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/10 bg-[#f7f7f7]/95 px-4 pb-7 pt-3 backdrop-blur-xl dark:border-white/10 dark:bg-base/80">
                     <button
                         type="button"
                         disabled={selected.size === 0}

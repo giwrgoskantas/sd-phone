@@ -79,7 +79,7 @@ export function ServiceMessagesTab({ inbox, loaded, onInboxChange, onMarkRead }:
                     {!loaded ? null : threads.length === 0 ? (
                         <EmptyState icon={MessageSquare} title={t('services.noMessages', 'No Messages')} subtitle={t('services.noMessagesSubtitle', 'Messages with companies will appear here.')} />
                     ) : (
-                        <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                        <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface">
                             {threads.map((t, i) => (
                                 <div key={t.key}>
                                     <ThreadRow thread={t} scope={scope} onOpen={() => setOpenKey(t.key)} />
@@ -193,7 +193,7 @@ function Conversation({ scope, thread, onBack, onSent }: {
 
     const view = (
         <div
-            className={`absolute inset-0 z-20 flex min-h-0 flex-col bg-[#e5e5e5] font-sf dark:bg-black ${isDark ? 'dark' : ''}`}
+            className={`absolute inset-0 z-20 flex min-h-0 flex-col bg-[#e5e5e5] font-sf dark:bg-base ${isDark ? 'dark' : ''}`}
             style={{ ...pageStyle, willChange: 'transform' }}
         >
             <div className="h-[58px] shrink-0" aria-hidden />

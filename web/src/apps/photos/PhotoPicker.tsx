@@ -35,7 +35,7 @@ export function PhotoPicker({ photos, existingIds, onConfirm, onClose }: {
 
     return (
         <div
-            className="absolute inset-0 z-50 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 z-50 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={{ animation: leaving ? 'ios-sheet-down 0.26s cubic-bezier(0.32,0,0.68,1) forwards' : 'ios-sheet-up 0.34s cubic-bezier(0.32,0.72,0,1)' }}
         >
             <div className="h-[54px] shrink-0" aria-hidden />

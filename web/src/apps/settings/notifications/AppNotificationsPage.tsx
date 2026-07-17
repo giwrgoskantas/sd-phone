@@ -79,7 +79,7 @@ export function AppNotificationsPage({
                         </span>
                     </div>
 
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <ToggleRow
                             label={t('settings.allowNotifications', 'Allow Notifications')}
                             on={enabled}
@@ -88,7 +88,7 @@ export function AppNotificationsPage({
                     </div>
 
                     {enabled && (
-                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                             <ToggleRow
                                 label={t('settings.sounds', 'Sounds')}
                                 on={sounds}
@@ -134,14 +134,14 @@ function TonePickerPage({
 }) {
     const { goBack, pageStyle } = useIosPush(onBack);
     return (
-        <div className="absolute inset-0 z-40 flex flex-col bg-[#d4d4d4] dark:bg-black" style={pageStyle}>
+        <div className="absolute inset-0 z-40 flex flex-col bg-[#d4d4d4] dark:bg-base" style={pageStyle}>
             <div className="h-11 shrink-0" aria-hidden />
 
             <NavBar backLabel={appLabel} onBack={goBack} title={t('settings.textTone', 'Text Tone')} hairline />
 
             <div className="flex-1 overflow-y-auto no-scrollbar">
                 <div className="mt-6 px-4 pb-10">
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {TONES.map((t, i) => (
                             <button
                                 key={t}
@@ -157,7 +157,7 @@ function TonePickerPage({
                                 )}
                                 {i < TONES.length - 1 && (
                                     <div
-                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                                         style={{ left: 0, height: '0.5px' }}
                                     />
                                 )}
@@ -210,7 +210,7 @@ function ToggleRow({
             </div>
             {divider && (
                 <div
-                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                     style={{ left: 0, height: '0.5px' }}
                 />
             )}

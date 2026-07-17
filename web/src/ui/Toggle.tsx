@@ -36,7 +36,7 @@ export function Toggle({ defaultOn = false, on, onChange, disabled = false, acti
             onClick={toggle}
             className={clsx(
                 'relative shrink-0 rounded-full transition-colors duration-[280ms]',
-                value ? (activeColor ? undefined : 'bg-ios-green') : 'bg-ios-gray5 dark:bg-[#39393D]',
+                value ? (activeColor ? undefined : 'bg-ios-green') : 'bg-ios-gray5 dark:bg-control',
                 disabled && 'cursor-not-allowed opacity-40',
             )}
             style={{

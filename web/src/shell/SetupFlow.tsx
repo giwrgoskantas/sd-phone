@@ -79,7 +79,7 @@ export function SetupFlow({ onDone, onHelloChange }: Props) {
     useEffect(() => () => { onHelloChangeRef.current?.(false); }, []);
 
     return (
-        <div className="absolute inset-0 z-30 flex flex-col overflow-hidden bg-white dark:bg-black text-black dark:text-white">
+        <div className="absolute inset-0 z-30 flex flex-col overflow-hidden bg-white dark:bg-base text-black dark:text-white">
             <svg width="0" height="0" aria-hidden className="absolute">
                 <defs>
                     <linearGradient id="setup-icon-grad" gradientUnits="userSpaceOnUse" x1="2" y1="1" x2="22" y2="23">
@@ -689,7 +689,7 @@ function ThemeCard({
                 'flex h-[24px] w-[24px] items-center justify-center rounded-full border-2 transition-colors',
                 selected
                     ? 'border-ios-blue bg-ios-blue'
-                    : 'border-[#C6C6C8] dark:border-[#636366] bg-transparent',
+                    : 'border-[#C6C6C8] dark:border-control bg-transparent',
             ].join(' ')}>
                 {selected && (
                     <svg viewBox="0 0 14 14" className="h-[11px] w-[11px] text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

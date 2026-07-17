@@ -81,7 +81,7 @@ export function GroupDetail({
 
     return (
         <div
-            className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white"
+            className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white"
             style={pageStyle}
         >
             <div className="h-11 shrink-0" aria-hidden />
@@ -138,7 +138,7 @@ export function GroupDetail({
                             </div>
                         )}
                         {isLeader && (
-                            <span className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#d4d4d4] bg-ios-blue dark:border-black">
+                            <span className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#d4d4d4] bg-ios-blue dark:border-base">
                                 <Camera className="h-[17px] w-[17px] text-white" strokeWidth={2} />
                             </span>
                         )}
@@ -165,7 +165,7 @@ export function GroupDetail({
                     <p className="mb-1.5 px-1 text-[13px] font-normal uppercase tracking-wider text-ios-gray">
                         {t('groups.activeGroup', 'Active Group')}
                     </p>
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <button
                             type="button"
                             onClick={() => void handleToggleActive()}
@@ -189,7 +189,7 @@ export function GroupDetail({
                     <p className="mb-1.5 px-1 text-[13px] font-normal uppercase tracking-wider text-ios-gray">
                         {t('groups.members', 'Members')}
                     </p>
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {members.map((m, i) => {
                             const isMe     = m.id === 'local';
                             const isRowLdr = m.id === group.leaderId;
@@ -207,7 +207,7 @@ export function GroupDetail({
                                             </div>
                                             {m.online && (
                                                 <span
-                                                    className="absolute -bottom-[1px] -right-[1px] h-[12px] w-[12px] rounded-full border-[2px] border-[#e5e5e5] dark:border-[#1c1c1e]"
+                                                    className="absolute -bottom-[1px] -right-[1px] h-[12px] w-[12px] rounded-full border-[2px] border-[#e5e5e5] dark:border-surface"
                                                     style={{ background: '#34c759' }}
                                                 />
                                             )}
@@ -242,7 +242,7 @@ export function GroupDetail({
 
                                     {i < members.length - 1 && (
                                         <div
-                                            className="pointer-events-none bg-ios-gray4 dark:bg-[#38383A]"
+                                            className="pointer-events-none bg-ios-gray4 dark:bg-control"
                                             style={{ height: '0.5px' }}
                                         />
                                     )}
@@ -256,7 +256,7 @@ export function GroupDetail({
                     <p className="mb-1.5 px-1 text-[13px] font-normal uppercase tracking-wider text-ios-gray">
                         {t('groups.actions', 'Actions')}
                     </p>
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <button
                             type="button"
                             onClick={() =>

@@ -81,7 +81,7 @@ export function AppStore({ onClose: _onClose, apps, installed, onInstall, onOpen
     });
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="h-[58px] shrink-0" aria-hidden />
 
             <h1 className="px-5 pb-2 pt-1 text-[32px] font-bold tracking-tight text-black dark:text-white">{t('appstore.title', 'Apps')}</h1>
@@ -103,7 +103,7 @@ export function AppStore({ onClose: _onClose, apps, installed, onInstall, onOpen
                         {!query && filter === 'notInstalled' ? t('appstore.allAppsInstalled', 'All apps installed') : t('appstore.noAppsFound', 'No apps found')}
                     </p>
                 ) : (
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {list.map((a, i) => {
                             const isInstalled = !!a.base || installed.has(a.id);
                             const dl = downloading[a.id];

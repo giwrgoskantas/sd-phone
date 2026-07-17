@@ -35,7 +35,7 @@ export function Clock({ onClose }: { onClose: () => void }) {
     useEffect(() => { if (tab !== 'alarm') { setAlarmEditing(false); setEditorOpen(false); } }, [tab]);
 
     return (
-        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white">
+        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white">
             <div className="shrink-0" style={{ height: SB_H }} />
 
             <div className="relative flex flex-1 flex-col overflow-hidden">

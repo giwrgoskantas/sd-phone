@@ -307,7 +307,7 @@ export function Messages({ onClose }: { onClose: () => void }) {
     }, []);
 
     return (
-        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white overflow-hidden">
+        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white overflow-hidden">
             {resolved && (
                 <ConversationList
                     conversations={conversations}

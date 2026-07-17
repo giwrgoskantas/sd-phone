@@ -70,7 +70,7 @@ export function ContactsTab({ contacts, myNumber, myName, card, onRequestCall, o
                 <div className="absolute inset-0 overflow-y-auto no-scrollbar pl-4 pr-5 pb-6">
                     {searching ? (
                         results.length > 0 ? (
-                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                                 {results.map((c, i) => (
                                     <ContactRow key={c.id} contact={c} divider={i < results.length - 1} onOpen={setSelected} />
                                 ))}
@@ -85,7 +85,7 @@ export function ContactsTab({ contacts, myNumber, myName, card, onRequestCall, o
                             <button
                                 type="button"
                                 onClick={() => setShowMyCard(true)}
-                                className="mb-5 flex w-full items-center gap-3.5 rounded-[10px] bg-[#e5e5e5] px-3.5 py-3 text-left active:opacity-80 dark:bg-[#1C1C1E]"
+                                className="mb-5 flex w-full items-center gap-3.5 rounded-[10px] bg-[#e5e5e5] px-3.5 py-3 text-left active:opacity-80 dark:bg-surface"
                             >
                                 <ContactAvatar contact={myCard} size={60} />
                                 <div className="min-w-0 flex-1">
@@ -101,7 +101,7 @@ export function ContactsTab({ contacts, myNumber, myName, card, onRequestCall, o
                                         <div className="px-2 pb-1.5 pt-0.5 text-[15px] font-semibold uppercase text-black/45 dark:text-white/45">
                                             {section.letter}
                                         </div>
-                                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                                        <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                                             {section.contacts.map((c, i) => (
                                                 <ContactRow key={c.id} contact={c} divider={i < section.contacts.length - 1} onOpen={setSelected} />
                                             ))}

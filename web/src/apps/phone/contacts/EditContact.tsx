@@ -54,7 +54,7 @@ export function EditContact({ contact, onCancel, onSave, onDelete, lockPhone = f
 
     return (
         <div
-            className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={{
                 transform:  shown ? 'translateY(0)' : 'translateY(100%)',
                 transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
@@ -71,24 +71,24 @@ export function EditContact({ contact, onCancel, onSave, onDelete, lockPhone = f
                     <button type="button" onClick={() => setPicking(true)} className="mt-2.5 text-[16px] text-ios-blue active:opacity-60">{t('phone.edit','Edit')}</button>
                 </div>
 
-                <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                     <Field placeholder={t('phone.firstName','First Name')} value={first} onChange={setFirst} />
                     <Divider />
                     <Field placeholder={t('phone.lastName','Last Name')} value={last} onChange={setLast} />
                 </div>
 
-                <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                     <Field placeholder={t('phone.phone','Phone')} value={phone} onChange={setPhone} inputMode="tel" tint readOnly={lockPhone} />
                 </div>
 
-                <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                     <Field placeholder={t('phone.emailCap','Email')} value={email} onChange={setEmail} tint />
                     <Divider />
                     <Field placeholder={t('phone.addressCap','Address')} value={address} onChange={setAddress} />
                 </div>
 
                 {allowDelete && (
-                    <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <button type="button" onClick={() => setConfirmDelete(true)} className="w-full px-4 py-3 text-left text-[18px] text-ios-red active:bg-black/5 dark:active:bg-white/5">
                             {t('phone.deleteContact','Delete Contact')}
                         </button>

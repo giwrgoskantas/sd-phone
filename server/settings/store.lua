@@ -121,6 +121,9 @@ function store.ensureSchema()
     if not columnExists('phone_settings', 'locale') then
         MySQL.query.await('ALTER TABLE phone_settings ADD COLUMN locale VARCHAR(8) NULL')
     end
+    if not columnExists('phone_settings', 'dark_theme') then
+        MySQL.query.await('ALTER TABLE phone_settings ADD COLUMN dark_theme VARCHAR(16) NULL')
+    end
 
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS phone_custom_ringtones (
@@ -656,6 +659,29 @@ function store.setHour24(citizenid, on)
         INSERT INTO phone_settings (citizenid, hour24) VALUES (?, ?)
         ON DUPLICATE KEY UPDATE hour24 = VALUES(hour24)
     ]], { citizenid, on == true and 1 or 0 })
+end
+
+---Returns a player's selected dark-mode palette, defaulting to 'graphite'. Read-only.
+---@param citizenid string framework per-character id
+---@return string darkTheme 'graphite' | 'black' | 'warm'
+function store.getDarkTheme(citizenid)
+    if not citizenid or citizenid == '' then return 'graphite' end
+    local row = MySQL.single.await('SELECT dark_theme FROM phone_settings WHERE citizenid = ?', { citizenid })
+    local v = row and row.dark_theme
+    if v == 'graphite' or v == 'black' or v == 'warm' then return v end
+    return 'graphite'
+end
+
+---Persists a player's dark-mode palette (upsert), whitelisted to the known values.
+---@param citizenid string framework per-character id
+---@param theme string 'graphite' | 'black' | 'warm'
+function store.setDarkTheme(citizenid, theme)
+    if not citizenid or citizenid == '' then return end
+    if theme ~= 'graphite' and theme ~= 'black' and theme ~= 'warm' then theme = 'graphite' end
+    MySQL.update.await([[
+        INSERT INTO phone_settings (citizenid, dark_theme) VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE dark_theme = VALUES(dark_theme)
+    ]], { citizenid, theme })
 end
 
 ---Persists a player's tone selections, leaving any other settings intact; a nil or invalid

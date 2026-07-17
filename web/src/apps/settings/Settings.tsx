@@ -67,7 +67,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
                 {query.trim() ? (
                     <div className="pb-10">
                         {searchResults.length > 0 ? (
-                            <div className="mx-4 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                            <div className="mx-4 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                                 {searchResults.map((row, i) => (
                                     <SettingsRow
                                         key={row.id}

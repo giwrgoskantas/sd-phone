@@ -71,7 +71,7 @@ export function NewMessage({ contacts, myNumber, onCancel, onSend }: NewMessageP
 
     return (
         <div
-            className="font-sf absolute inset-x-0 bottom-0 z-40 flex flex-col overflow-hidden rounded-t-[16px] bg-[#f2f2f2] text-black dark:bg-black dark:text-white"
+            className="font-sf absolute inset-x-0 bottom-0 z-40 flex flex-col overflow-hidden rounded-t-[16px] bg-[#f2f2f2] text-black dark:bg-base dark:text-white"
             style={{
                 top: 'calc(var(--safe-top) + 6px)',
                 animation: exiting
@@ -163,7 +163,7 @@ export function NewMessage({ contacts, myNumber, onCancel, onSend }: NewMessageP
                     className="shrink-0 border-t border-black/10 px-3 pb-9 pt-2 dark:border-white/10"
                     style={{ animation: 'ios-sheet-up 0.3s cubic-bezier(0.32,0.72,0,1)' }}
                 >
-                    <div className={`flex items-center gap-1 rounded-[22px] bg-[#d4d4d4] py-[9px] pl-4 dark:bg-[#1C1C1E] ${body.trim() ? 'pr-[5px]' : 'pr-4'}`}>
+                    <div className={`flex items-center gap-1 rounded-[22px] bg-[#d4d4d4] py-[9px] pl-4 dark:bg-surface ${body.trim() ? 'pr-[5px]' : 'pr-4'}`}>
                         <input
                             type="text"
                             value={body}

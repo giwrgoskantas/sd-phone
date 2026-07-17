@@ -96,12 +96,12 @@ export function JobsTab({ onJobChanged }: { onJobChanged?: () => void }) {
                         ) : (
                             <>
                                 {max > 0 && <Capacity count={jobs.length} max={max} />}
-                                <div className="relative overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                                <div className="relative overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface">
                                     {jobs.map(j => (
                                         <div
                                             key={j.job}
                                             ref={el => { if (el) rowEls.current.set(j.job, el); else rowEls.current.delete(j.job); }}
-                                            className="relative border-t border-black/10 bg-[#e5e5e5] first:border-t-0 dark:border-white/10 dark:bg-[#1c1c1e]"
+                                            className="relative border-t border-black/10 bg-[#e5e5e5] first:border-t-0 dark:border-white/10 dark:bg-surface"
                                         >
                                             <JobRow
                                                 job={j}
@@ -221,7 +221,7 @@ function InviteCard({ invite, disabled, onAccept, onDecline }: {
     onDecline: () => void;
 }) {
     return (
-        <div className="rounded-[16px] bg-[#e5e5e5] px-4 py-4 dark:bg-[#1c1c1e]">
+        <div className="rounded-[16px] bg-[#e5e5e5] px-4 py-4 dark:bg-surface">
             <div className="flex items-center gap-3.5">
                 <Tile>
                     <Briefcase className="h-[20px] w-[20px] text-white" strokeWidth={2.1} />

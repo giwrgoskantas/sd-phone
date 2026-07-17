@@ -58,7 +58,7 @@ export function Health({ onClose }: HealthProps) {
     const distance = distanceM / M_PER_MILE;
 
     return (
-        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white">
+        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white">
             <div className="shrink-0" style={{ height: SB_H }} />
 
             <div className="shrink-0 px-5 pb-2 pt-1">
@@ -120,7 +120,7 @@ function Card({ accent, icon, title, children }: {
     children: React.ReactNode;
 }) {
     return (
-        <div className="mb-2.5 rounded-[15px] bg-[#e5e5e5] p-3.5 dark:bg-[#1c1c1e]">
+        <div className="mb-2.5 rounded-[15px] bg-[#e5e5e5] p-3.5 dark:bg-surface">
             <div className="flex items-center gap-1.5 text-[16px] font-semibold" style={{ color: accent }}>
                 <span className="flex h-5 w-5 items-center justify-center">{icon}</span>
                 <span>{title}</span>

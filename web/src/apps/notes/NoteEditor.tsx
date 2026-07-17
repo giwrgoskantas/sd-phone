@@ -72,7 +72,7 @@ export function NoteEditor({ note, onBack, onChange, onDelete, animateIn = true 
 
     return (
         <div
-            className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white"
+            className="absolute inset-0 z-20 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white"
             style={pageStyle}
         >
             <div className="h-[58px] shrink-0" aria-hidden />

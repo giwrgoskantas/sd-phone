@@ -18,7 +18,7 @@ export function TabBar<T extends string>({ tabs, active, onChange, labelClassNam
     activeClassName?: string;
 }) {
     const bar = (
-        <div className="shrink-0 border-t border-black/10 bg-[#f7f7f7]/95 pb-9 pt-2.5 backdrop-blur-xl dark:border-white/10 dark:bg-black/80">
+        <div className="shrink-0 border-t border-black/10 bg-[#f7f7f7]/95 pb-9 pt-2.5 backdrop-blur-xl dark:border-white/10 dark:bg-base/80">
             <div className="flex items-stretch justify-around px-1">
                 {tabs.map(tab => {
                     const isActive = tab.id === active;
@@ -35,7 +35,7 @@ export function TabBar<T extends string>({ tabs, active, onChange, labelClassNam
                                 {tab.icon(isActive)}
                                 {(tab.badge ?? 0) > 0 && (
                                     <span
-                                        className="absolute -top-[2px] -right-[3px] h-[11px] w-[11px] rounded-full bg-ios-red ring-2 ring-[#f7f7f7] dark:ring-black"
+                                        className="absolute -top-[2px] -right-[3px] h-[11px] w-[11px] rounded-full bg-ios-red ring-2 ring-[#f7f7f7] dark:ring-base"
                                         aria-label={t('shell.unreadMessages','Unread messages')}
                                     />
                                 )}

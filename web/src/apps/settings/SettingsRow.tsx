@@ -76,7 +76,7 @@ export function SettingsRow({ row, divider, onPress }: { row: SettingsRowDef; di
 
             {divider && (
                 <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 bg-ios-gray4 dark:bg-[#38383A]"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 bg-ios-gray4 dark:bg-control"
                     style={{ height: '0.5px' }}
                 />
             )}

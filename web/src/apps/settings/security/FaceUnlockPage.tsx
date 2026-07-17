@@ -109,7 +109,7 @@ function ActionRow({
             <span className={`text-[17px] font-normal ${textClass}`}>{label}</span>
             {divider && (
                 <div
-                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                     style={{ left: 0, height: '0.5px' }}
                 />
             )}
@@ -187,7 +187,7 @@ function PinFlow({
 
     return (
         <div
-            className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={pageStyle}
         >
             <div className="h-11 shrink-0" aria-hidden />
@@ -229,7 +229,7 @@ function PinFlow({
                                     key={i}
                                     type="button"
                                     onClick={del}
-                                    className="flex items-center justify-center h-[72px] rounded-[14px] bg-white dark:bg-[#2C2C2E] active:bg-ios-gray5 dark:active:bg-[#3A3A3C] transition-colors shadow-sm"
+                                    className="flex items-center justify-center h-[72px] rounded-[14px] bg-white dark:bg-elevated active:bg-ios-gray5 dark:active:bg-[#3A3A3C] transition-colors shadow-sm"
                                 >
                                     <Delete className="h-[22px] w-[22px] text-black dark:text-white" strokeWidth={1.75} />
                                 </button>
@@ -240,7 +240,7 @@ function PinFlow({
                                 key={i}
                                 type="button"
                                 onClick={() => press(k)}
-                                className="flex flex-col items-center justify-center h-[72px] rounded-[14px] bg-white dark:bg-[#2C2C2E] active:bg-ios-gray5 dark:active:bg-[#3A3A3C] transition-colors shadow-sm"
+                                className="flex flex-col items-center justify-center h-[72px] rounded-[14px] bg-white dark:bg-elevated active:bg-ios-gray5 dark:active:bg-[#3A3A3C] transition-colors shadow-sm"
                             >
                                 <span className="text-[28px] font-light text-black dark:text-white leading-none">{k}</span>
                             </button>

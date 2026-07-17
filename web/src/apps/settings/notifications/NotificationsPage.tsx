@@ -71,7 +71,7 @@ export function NotificationsPage({ onBack }: { onBack: () => void }) {
                                 <ChevronRight className="h-[17px] w-[17px] shrink-0 text-ios-gray3" strokeWidth={2.5} />
                                 {i < APPS.length - 1 && (
                                     <div
-                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                                        className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                                         style={{ left: 0, height: '0.5px' }}
                                     />
                                 )}

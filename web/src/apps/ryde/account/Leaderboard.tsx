@@ -29,14 +29,14 @@ export function Leaderboard() {
     const myIndex = rows.findIndex(e => e === localMe || (!!myUsername && !!e.username && e.username === myUsername));
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="shrink-0 px-5 pb-1" style={{ paddingTop: 'calc(var(--safe-top) + 10px)' }}>
                 <h1 className="text-[34px] font-bold tracking-tight text-black dark:text-white">{t('ryde.leaderboard', 'Leaderboard')}</h1>
                 <p className="text-[17px] text-ios-gray">{t('ryde.topRatedDrivers', 'Top-rated drivers in Los Santos')}</p>
             </div>
 
             <div className="no-scrollbar flex-1 overflow-y-auto px-4 py-3">
-                <div className="overflow-hidden rounded-[14px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                <div className="overflow-hidden rounded-[14px] bg-[#e5e5e5] dark:bg-surface">
                     {rows.map((r, i) => {
                         const rank = i + 1;
                         const isMe = i === myIndex;

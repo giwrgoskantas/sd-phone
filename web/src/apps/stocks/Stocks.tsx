@@ -103,7 +103,7 @@ export function Stocks({ onClose }: { onClose: () => void }) {
       :                             Infinity;
 
     return (
-        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] text-black dark:bg-black dark:text-white">
+        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] text-black dark:bg-base dark:text-white">
             <div className="h-[61px] shrink-0" aria-hidden />
 
             <div className="px-5 pb-1 pt-1 text-[34px] font-bold tracking-tight">{t('stocks.stocks', 'Stocks')}</div>
@@ -138,8 +138,8 @@ export function Stocks({ onClose }: { onClose: () => void }) {
                 </div>
 
                 <div className="mt-3 flex gap-3">
-                    <button type="button" onClick={() => setTrade({ mode: 'deposit' })} className="flex-1 rounded-[12px] bg-[#e5e5e5] py-2.5 text-[15px] font-semibold active:opacity-70 dark:bg-[#1c1c1e]">{t('stocks.deposit', 'Deposit')}</button>
-                    <button type="button" onClick={() => setTrade({ mode: 'withdraw' })} className="flex-1 rounded-[12px] bg-[#e5e5e5] py-2.5 text-[15px] font-semibold active:opacity-70 dark:bg-[#1c1c1e]">{t('stocks.withdraw', 'Withdraw')}</button>
+                    <button type="button" onClick={() => setTrade({ mode: 'deposit' })} className="flex-1 rounded-[12px] bg-[#e5e5e5] py-2.5 text-[15px] font-semibold active:opacity-70 dark:bg-surface">{t('stocks.deposit', 'Deposit')}</button>
+                    <button type="button" onClick={() => setTrade({ mode: 'withdraw' })} className="flex-1 rounded-[12px] bg-[#e5e5e5] py-2.5 text-[15px] font-semibold active:opacity-70 dark:bg-surface">{t('stocks.withdraw', 'Withdraw')}</button>
                 </div>
 
                 <SearchBar value={query} onChange={setQuery} placeholder={tab === 'crypto' ? t('stocks.searchCrypto', 'Search Cryptocurrency') : t('stocks.searchStocks', 'Search Stocks')} className="mt-4" />
@@ -157,7 +157,7 @@ export function Stocks({ onClose }: { onClose: () => void }) {
                             {query.trim() ? t('stocks.noResults', 'No results for “{query}”', { query }) : t('stocks.noAssets', 'No assets')}
                         </p>
                     ) : (
-                        <div className="mt-1.5 overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                        <div className="mt-1.5 overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface">
                             {list.map((a, i) => (
                                 <StockRow key={a.symbol} asset={a} divider={i < list.length - 1} onOpen={() => setOpenSymbol(a.symbol)} />
                             ))}

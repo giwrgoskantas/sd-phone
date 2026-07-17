@@ -30,7 +30,7 @@ export function NotesList({ notes, onOpen, onCompose }: Props) {
     }, [notes, query]);
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white">
             <div className="h-[58px] shrink-0" aria-hidden />
 
             <div className="flex items-center justify-between px-5 pb-1 pt-1">
@@ -48,7 +48,7 @@ export function NotesList({ notes, onOpen, onCompose }: Props) {
                         ? <EmptyState icon={SearchX} title={t('notes.noResults', 'No Results')} subtitle={t('notes.noResultsSub', 'No notes match your search.')} />
                         : <EmptyState icon={StickyNote} title={t('notes.noNotes', 'No Notes')} subtitle={t('notes.noNotesSub', 'Tap the pencil to write your first note.')} />
                 ) : (
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         {sorted.map((n, i) => (
                             <div key={n.id} className="relative">
                                 <button

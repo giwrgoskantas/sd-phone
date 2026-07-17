@@ -38,7 +38,7 @@ export function Account({ onClose }: { onClose: () => void }) {
     const rating = driverStats(g.rides).avgRating;
 
     if (!authChecked) {
-        return <div className="absolute inset-0 bg-ios-gray6 dark:bg-black" />;
+        return <div className="absolute inset-0 bg-ios-gray6 dark:bg-base" />;
     }
 
     if (!authed) {
@@ -94,7 +94,7 @@ export function Account({ onClose }: { onClose: () => void }) {
     const displayName = me?.name || me?.username || t('ryde.you', 'You');
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-black">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] font-sf dark:bg-base">
             <div className="flex shrink-0 items-center justify-between px-5 pb-2" style={{ paddingTop: 'calc(var(--safe-top) + 10px)' }}>
                 <h1 className="text-[34px] font-bold tracking-tight text-black dark:text-white">{t('ryde.account', 'Account')}</h1>
                 <button
@@ -108,7 +108,7 @@ export function Account({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="no-scrollbar flex-1 overflow-y-auto pb-10">
-                <div className="mx-4 mt-1 flex items-center gap-4 rounded-[12px] bg-[#e5e5e5] p-4 dark:bg-[#1C1C1E]">
+                <div className="mx-4 mt-1 flex items-center gap-4 rounded-[12px] bg-[#e5e5e5] p-4 dark:bg-surface">
                     <InitialsAvatar name={displayName} color="#111" size={64} />
                     <div className="min-w-0 flex-1">
                         <p className="truncate text-[23px] font-bold tracking-tight text-black dark:text-white">{displayName}</p>
@@ -139,7 +139,7 @@ export function Account({ onClose }: { onClose: () => void }) {
                         </div>
                         <span className="flex-1 text-[18px] font-medium text-black dark:text-white">{t('ryde.changePassword', 'Change password')}</span>
                         <ChevronRight className="h-[19px] w-[19px] shrink-0 text-ios-gray3" strokeWidth={2.5} />
-                        <div className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]" style={{ left: '70px', height: '0.5px' }} />
+                        <div className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control" style={{ left: '70px', height: '0.5px' }} />
                     </button>
                     <button
                         onClick={() => setConfirmSignOut(true)}
@@ -149,7 +149,7 @@ export function Account({ onClose }: { onClose: () => void }) {
                             <LogOut className="h-[22px] w-[22px] text-white" strokeWidth={2.2} />
                         </div>
                         <span className="flex-1 text-[18px] font-medium text-ios-red">{t('ryde.signOut', 'Sign out')}</span>
-                        <div className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]" style={{ left: '70px', height: '0.5px' }} />
+                        <div className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control" style={{ left: '70px', height: '0.5px' }} />
                     </button>
                     <button
                         onClick={() => setConfirmDelete(true)}
@@ -201,7 +201,7 @@ export function Account({ onClose }: { onClose: () => void }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-[12px] bg-[#e5e5e5] p-3.5 dark:bg-[#1C1C1E]">
+        <div className="rounded-[12px] bg-[#e5e5e5] p-3.5 dark:bg-surface">
             <p className="text-[26px] font-extrabold tracking-tight text-black dark:text-white">{value}</p>
             <p className="mt-0.5 text-[14px] text-ios-gray">{label}</p>
         </div>
@@ -228,7 +228,7 @@ function Row({ icon, iconBg, label, value, onClick, divider = false }: {
             {value && <span className="shrink-0 text-[16px] text-ios-gray">{value}</span>}
             <ChevronRight className="h-[19px] w-[19px] shrink-0 text-ios-gray3" strokeWidth={2.5} />
             {divider && (
-                <div className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]" style={{ left: `${ROW_DIVIDER_LEFT}px`, height: '0.5px' }} />
+                <div className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control" style={{ left: `${ROW_DIVIDER_LEFT}px`, height: '0.5px' }} />
             )}
         </button>
     );

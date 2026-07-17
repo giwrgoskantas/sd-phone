@@ -161,9 +161,9 @@ export function SketchCanvas({ initial, onSave, onCancel }: Props) {
         startClose(() => onSave(png));
     }
 
-    const pageBg  = isDark ? '#000000' : '#d4d4d4';
+    const pageBg  = isDark ? 'rgb(var(--base))' : '#d4d4d4';
     const canvasBg = isDark ? '#0d0d0e' : '#ffffff';
-    const tray    = isDark ? '#2c2c2e' : '#f2f2f7';
+    const tray    = isDark ? 'rgb(var(--elevated))' : '#f2f2f7';
 
     return (
         <div

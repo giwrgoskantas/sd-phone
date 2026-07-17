@@ -77,7 +77,7 @@ export function AddMemberSheet({ groupName, contacts, existing, myNumber, onCanc
             top={6}
             dim={false}
             durationMs={320}
-            className="font-sf bg-[#f2f2f2] text-black dark:bg-black dark:text-white"
+            className="font-sf bg-[#f2f2f2] text-black dark:bg-base dark:text-white"
         >
             {({ close }) => {
                 function add() {

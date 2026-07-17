@@ -48,7 +48,7 @@ export function AddContact({ onCancel, onSave, initialPhone = '' }: { onCancel: 
 
     return (
         <div
-            className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-black"
+            className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-base"
             style={{
                 transform:  shown ? 'translateY(0)' : 'translateY(100%)',
                 transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
@@ -63,7 +63,7 @@ export function AddContact({ onCancel, onSave, initialPhone = '' }: { onCancel: 
                         {avatar ? (
                             <img src={avatar} alt="" draggable={false} className="h-full w-full object-cover" />
                         ) : (
-                            <span className="flex h-full w-full items-center justify-center bg-[#b6b6bb] dark:bg-[#48484a]">
+                            <span className="flex h-full w-full items-center justify-center bg-[#b6b6bb] dark:bg-control">
                                 <UserRound className="h-[64px] w-[64px] text-white/90" strokeWidth={1.6} fill="currentColor" />
                             </span>
                         )}
@@ -73,13 +73,13 @@ export function AddContact({ onCancel, onSave, initialPhone = '' }: { onCancel: 
                     </button>
                 </div>
 
-                <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                     <Field placeholder={t('phone.firstName','First Name')} value={first} onChange={setFirst} />
                     <Divider />
                     <Field placeholder={t('phone.lastName','Last Name')} value={last} onChange={setLast} />
                 </div>
 
-                <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                <div className="mt-5 overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                     <Field placeholder={t('phone.phoneNumber','Phone Number')} value={phone} onChange={v => { setPhone(v); setError(null); }} inputMode="tel" />
                 </div>
 

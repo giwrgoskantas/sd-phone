@@ -29,7 +29,7 @@ export function WriteReview({ business, onCancel, onSubmit }: {
     }
 
     return (
-        <div className="absolute inset-0 z-40 flex flex-col bg-[#f2f2f7] font-sf dark:bg-[#1c1c1e] animate-sheet-up">
+        <div className="absolute inset-0 z-40 flex flex-col bg-[#f2f2f7] font-sf dark:bg-surface animate-sheet-up">
             <div className="h-[54px] shrink-0" aria-hidden />
 
             <SheetHeader cancelLabel={t('review.cancel', 'Cancel')} onCancel={onCancel} title={t('review.writeReview', 'Write a Review')} doneLabel={t('review.post', 'Post')} onDone={submit} doneDisabled={!canSubmit} />
@@ -49,7 +49,7 @@ export function WriteReview({ business, onCancel, onSubmit }: {
                     rows={5}
                     maxLength={600}
                     placeholder={t('review.bodyPlaceholder', 'Share the details of your experience…')}
-                    className="w-full resize-none rounded-xl bg-white p-3 text-[15px] text-black outline-none placeholder:text-black/35 dark:bg-[#2c2c2e] dark:text-white dark:placeholder:text-white/35"
+                    className="w-full resize-none rounded-xl bg-white p-3 text-[15px] text-black outline-none placeholder:text-black/35 dark:bg-elevated dark:text-white dark:placeholder:text-white/35"
                 />
 
                 <div className="mt-4">
@@ -69,7 +69,7 @@ export function WriteReview({ business, onCancel, onSubmit }: {
                         <button
                             type="button"
                             onClick={() => setPicking(true)}
-                            className="flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 text-[15px] text-ios-blue dark:bg-[#2c2c2e]"
+                            className="flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 text-[15px] text-ios-blue dark:bg-elevated"
                         >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
                             {t('review.addPhoto', 'Add a photo')}
@@ -79,7 +79,7 @@ export function WriteReview({ business, onCancel, onSubmit }: {
             </div>
 
             {picking && (
-                <div className="absolute inset-0 z-50 flex flex-col bg-[#f2f2f7] dark:bg-black">
+                <div className="absolute inset-0 z-50 flex flex-col bg-[#f2f2f7] dark:bg-base">
                     <div className="h-[54px] shrink-0" aria-hidden />
                     <div className="flex h-11 shrink-0 items-center justify-between px-4">
                         <button type="button" onClick={() => setPicking(false)} className="text-[16px] text-ios-blue">{t('review.cancel', 'Cancel')}</button>

@@ -49,7 +49,7 @@ export function KeypadTab({ onAddContact, onCall }: {
                             key={k.d}
                             type="button"
                             onClick={() => press(k.d)}
-                            className="flex h-[95px] w-[95px] flex-col items-center justify-center rounded-full bg-[#e8e8ea] active:bg-[#c4c4c6] dark:bg-[#1c1c1e] dark:active:bg-[#48484a]"
+                            className="flex h-[95px] w-[95px] flex-col items-center justify-center rounded-full bg-[#e8e8ea] active:bg-[#c4c4c6] dark:bg-surface dark:active:bg-control"
                         >
                             <span className="text-[38px] font-normal leading-none text-black dark:text-white">{k.d}</span>
                             {k.sub && (

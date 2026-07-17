@@ -41,7 +41,7 @@ export function GroupsList({
     }, [orderedGroups, query]);
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-black text-black dark:text-white">
+        <div className="absolute inset-0 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white">
 
             <div className="h-[54px] shrink-0" aria-hidden />
 
@@ -89,7 +89,7 @@ export function GroupsList({
                                 {query ? t('groups.resultsCount', 'Results — {count}', { count: filtered.length }) : t('groups.myGroupsCount', 'My Groups — {count}', { count: groups.length })}
                             </div>
 
-                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                                 {filtered.map((g, i) => (
                                     <div key={g.id}>
                                         <button
@@ -143,7 +143,7 @@ export function GroupsList({
 
                                         {i < filtered.length - 1 && (
                                             <div
-                                                className="pointer-events-none bg-ios-gray4 dark:bg-[#38383A]"
+                                                className="pointer-events-none bg-ios-gray4 dark:bg-control"
                                                 style={{ height: '0.5px' }}
                                             />
                                         )}
@@ -165,7 +165,7 @@ export function GroupsList({
                                 {t('groups.pendingCount', 'Pending — {count}', { count: invites.length })}
                             </div>
 
-                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1c1c1e]">
+                            <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                                 {invites.map((inv, i) => (
                                     <div key={inv.id}>
                                         <div className="flex items-start gap-3.5 px-4 py-4">
@@ -215,7 +215,7 @@ export function GroupsList({
 
                                         {i < invites.length - 1 && (
                                             <div
-                                                className="pointer-events-none bg-ios-gray4 dark:bg-[#38383A]"
+                                                className="pointer-events-none bg-ios-gray4 dark:bg-control"
                                                 style={{ height: '0.5px' }}
                                             />
                                         )}

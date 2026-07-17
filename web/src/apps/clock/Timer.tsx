@@ -104,12 +104,12 @@ export function Timer({ topPad = 0, isDark }: { topPad?: number; isDark: boolean
             </div>
 
             {showRunning && (
-                <div className={`absolute inset-0 z-30 flex flex-col items-center bg-[#d4d4d4] dark:bg-black ${closing ? 'animate-timer-out' : 'animate-timer-in'}`}>
+                <div className={`absolute inset-0 z-30 flex flex-col items-center bg-[#d4d4d4] dark:bg-base ${closing ? 'animate-timer-out' : 'animate-timer-in'}`}>
                     <div style={{ height: topPad }} className="shrink-0" />
                     <div className="relative mt-6" style={{ width: 260, height: 260 }}>
                         <svg width={260} height={260} viewBox="0 0 260 260" className="-rotate-90">
                             <circle cx={130} cy={130} r={RING_R}
-                                fill="none" stroke={isDark ? '#2c2c2e' : '#d1d1d6'} strokeWidth="8" />
+                                fill="none" stroke={isDark ? 'rgb(var(--elevated))' : '#d1d1d6'} strokeWidth="8" />
                             <circle cx={130} cy={130} r={RING_R}
                                 fill="none"
                                 stroke={finished ? '#ff453a' : '#ff9f0a'}
@@ -164,7 +164,7 @@ function RoundBtn({ label, onClick, variant, isDark, disabled = false }: {
 }) {
     const bg = variant === 'green'  ? (isDark ? '#1d3d20' : '#D6F2DD') :
                variant === 'orange' ? (isDark ? '#3a2800' : '#FCE7C8') :
-                                      (isDark ? '#2c2c2e' : '#E4E4EA');
+                                      (isDark ? 'rgb(var(--elevated))' : '#E4E4EA');
     const fg = variant === 'green'  ? (isDark ? '#30d158' : '#34C759') :
                variant === 'orange' ? (isDark ? '#ff9f0a' : '#FF9500') :
                                       (isDark ? '#FFFFFF' : '#000000');

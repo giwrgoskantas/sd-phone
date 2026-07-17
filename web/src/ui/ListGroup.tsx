@@ -19,7 +19,7 @@ export function GroupCard({ children, className = '', radius = 10, header, foote
     footer?:    string;
 }) {
     const card = (
-        <div className={`overflow-hidden ${RADIUS[radius]} bg-[#e5e5e5] dark:bg-[#1C1C1E] ${className}`}>
+        <div className={`overflow-hidden ${RADIUS[radius]} bg-[#e5e5e5] dark:bg-surface ${className}`}>
             {children}
         </div>
     );
@@ -107,7 +107,7 @@ export function ListRow({ label, value, chevron, divider, destructive, selected,
             )}
             {divider && (
                 <div
-                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                     style={{ left: '16px', height: '0.5px' }}
                 />
             )}
@@ -136,7 +136,7 @@ export function ToggleRow({ label, defaultOn = false, divider, on: controlledOn,
             </div>
             {divider && (
                 <div
-                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-[#38383A]"
+                    className="pointer-events-none absolute bottom-0 right-0 bg-ios-gray4 dark:bg-control"
                     style={{ left: '16px', height: '0.5px' }}
                 />
             )}

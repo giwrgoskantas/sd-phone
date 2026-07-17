@@ -12,7 +12,7 @@ export function VehiclePicker({ onPick, onClose }: {
     const { vehicles, loading } = useRydeVehicles();
 
     return (
-        <Sheet title={t('ryde.yourVehicles', 'Your Vehicles')} onClose={onClose} fit="content" className="bg-[#e5e5e5] px-5 pt-3 dark:bg-[#1c1c1e]">
+        <Sheet title={t('ryde.yourVehicles', 'Your Vehicles')} onClose={onClose} fit="content" className="bg-[#e5e5e5] px-5 pt-3 dark:bg-surface">
             {() => (
                 loading ? (
                     <p className="py-10 text-center text-[15px] text-ios-gray">{t('ryde.loadingVehicles', 'Loading your vehicles…')}</p>

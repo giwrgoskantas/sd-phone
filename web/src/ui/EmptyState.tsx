@@ -20,7 +20,7 @@ export function EmptyState({ icon: Icon, title, subtitle, subtitleClassName, act
     return (
         <div className={`flex flex-col items-center text-center ${center ? 'h-full justify-center' : 'pt-24'}`}>
             {circle ? (
-                <div className={`flex h-16 w-16 items-center justify-center rounded-full ${circleClassName ?? 'bg-[#e5e5e5] dark:bg-[#1C1C1E]'}`}>
+                <div className={`flex h-16 w-16 items-center justify-center rounded-full ${circleClassName ?? 'bg-[#e5e5e5] dark:bg-surface'}`}>
                     {glyph}
                 </div>
             ) : glyph}

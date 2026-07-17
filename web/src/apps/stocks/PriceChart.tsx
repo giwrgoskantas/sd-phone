@@ -17,7 +17,7 @@ function Marker({ fx, fy, label, color, above }: { fx: number; fy: number; label
     return (
         <div className="absolute" style={{ left: `${fx * 100}%`, top: `${fy * 100}%` }}>
             <span
-                className="absolute block rounded-full border-2 border-[#d4d4d4] dark:border-black"
+                className="absolute block rounded-full border-2 border-[#d4d4d4] dark:border-base"
                 style={{ width: 9, height: 9, background: color, left: 0, top: 0, transform: 'translate(-50%,-50%)' }}
             />
             <span
@@ -120,7 +120,7 @@ export function PriceChart({ asset, live }: { asset: Asset; live: Asset }) {
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute bottom-0 top-0 w-px bg-black/25 dark:bg-white/30" style={{ left: `${fx(hv) * 100}%` }} />
                         <div className="absolute" style={{ left: `${fx(hv) * 100}%`, top: `${fy(series[hv]) * 100}%`, transform: 'translate(-50%,-50%)' }}>
-                            <span className="block rounded-full border-2 border-[#d4d4d4] dark:border-black" style={{ width: 13, height: 13, background: color }} />
+                            <span className="block rounded-full border-2 border-[#d4d4d4] dark:border-base" style={{ width: 13, height: 13, background: color }} />
                         </div>
                         <div className="absolute top-0 -translate-x-1/2 rounded-md bg-black/80 px-2.5 py-1 text-[15px] font-bold tabular-nums text-white" style={{ left: `${tipLeft}%` }}>
                             {formatPrice(series[hv])}

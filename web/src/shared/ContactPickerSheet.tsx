@@ -33,7 +33,7 @@ export function ContactPickerSheet({ onPick, onClose }: {
     }
 
     return (
-        <Sheet onClose={settle} top={50} className="font-sf bg-[#d4d4d4] dark:bg-black">
+        <Sheet onClose={settle} top={50} className="font-sf bg-[#d4d4d4] dark:bg-base">
             {({ close }) => {
                 const choose = (c: Contact) => { picked.current = c; close(); };
                 return (
@@ -77,7 +77,7 @@ export function ContactPickerSheet({ onPick, onClose }: {
 }
 
 function Card({ children }: { children: ReactNode }) {
-    return <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] shadow-sm dark:bg-[#1c1c1e]">{children}</div>;
+    return <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] shadow-sm dark:bg-surface">{children}</div>;
 }
 
 function Row({ contact, divider, onChoose }: { contact: Contact; divider: boolean; onChoose: (c: Contact) => void }) {

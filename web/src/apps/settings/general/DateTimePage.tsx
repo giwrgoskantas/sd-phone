@@ -19,7 +19,7 @@ export function DateTimePage({ onBack }: { onBack: () => void }) {
                 <ListRow label={t('settings.dateTimeZone', 'Time Zone')} value="Los Santos (UTC−8)" />
             </ListGroup>
 
-            <div className="mx-4 overflow-hidden rounded-[10px] bg-white px-4 py-5 text-center dark:bg-[#1c1c1e]">
+            <div className="mx-4 overflow-hidden rounded-[10px] bg-white px-4 py-5 text-center dark:bg-surface">
                 <div className="text-[42px] font-thin tracking-tight text-black dark:text-white">{formatClockTime(now, hour24)}</div>
                 <div className="mt-1 text-[15px] font-normal text-ios-gray">
                     {formatLongDate(now)}

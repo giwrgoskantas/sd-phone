@@ -38,7 +38,7 @@ export function Banking({ onClose: _onClose }: { onClose: () => void }) {
     const last4   = (overview?.number || '').replace(/\D/g, '').slice(-4) || '0000';
 
     return (
-        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] text-black dark:bg-black dark:text-white">
+        <div className="absolute inset-0 z-10 flex flex-col bg-[#d4d4d4] text-black dark:bg-base dark:text-white">
             <div className="h-[54px] shrink-0" aria-hidden />
 
             <div className="px-5 pb-2 pt-0.5 text-[34px] font-bold tracking-tight">{t('banking.wallet', 'Wallet')}</div>
@@ -46,7 +46,7 @@ export function Banking({ onClose: _onClose }: { onClose: () => void }) {
             <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-10 pt-3">
                 <FleecaCard holder={holder} last4={last4} expiry={CARD_EXPIRY} />
 
-                <div className="mt-5 flex items-center justify-between rounded-[16px] bg-[#e5e5e5] px-5 py-3 dark:bg-[#1c1c1e]">
+                <div className="mt-5 flex items-center justify-between rounded-[16px] bg-[#e5e5e5] px-5 py-3 dark:bg-surface">
                     <div>
                         <div className="text-[17px] font-semibold text-black dark:text-white">{t('banking.balance', 'Balance')}</div>
                         <div className="mt-0.5 text-[26px] font-bold tabular-nums tracking-tight text-black dark:text-white">{formatMoney(balance, { whole: true })}</div>
@@ -71,7 +71,7 @@ export function Banking({ onClose: _onClose }: { onClose: () => void }) {
                 </div>
 
                 {loading && latest.length === 0 ? null : latest.length === 0 ? (
-                    <div className="rounded-[14px] bg-[#e5e5e5] px-4 py-9 text-center text-[18px] font-medium text-ios-gray dark:bg-[#1c1c1e]">
+                    <div className="rounded-[14px] bg-[#e5e5e5] px-4 py-9 text-center text-[18px] font-medium text-ios-gray dark:bg-surface">
                         {t('banking.noTransactionsYet', 'No transactions yet.')}
                     </div>
                 ) : (

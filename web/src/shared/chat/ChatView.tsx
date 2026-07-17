@@ -254,13 +254,13 @@ export function ChatView({ conv, totalUnread, contacts, myNumber, onBack, onSend
 
     const receivedBg    = isDark ? '#262628' : '#c6c6c6';
     const sentBg        = '#0977e5';
-    const actionBarBg   = isDark ? '#1C1C1E' : '#d4d4d4';
+    const actionBarBg   = isDark ? 'rgb(var(--surface))' : '#d4d4d4';
     const composerBdr   = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)';
-    const actionBtnBg   = isDark ? '#2C2C2E' : '#fff';
+    const actionBtnBg   = isDark ? 'rgb(var(--elevated))' : '#fff';
 
     return (
         <div
-            className="absolute inset-0 z-20 flex flex-col bg-[#e5e5e5] dark:bg-black text-black dark:text-white overflow-hidden"
+            className="absolute inset-0 z-20 flex flex-col bg-[#e5e5e5] dark:bg-base text-black dark:text-white overflow-hidden"
             style={{
                 animation: closing
                     ? 'ios-pop 0.32s cubic-bezier(0.32,0.72,0,1) forwards'
@@ -441,7 +441,7 @@ export function ChatView({ conv, totalUnread, contacts, myNumber, onBack, onSend
 
                 <div className="px-3 pb-2 pt-1.5">
                     <div
-                        className={`flex items-center gap-1 rounded-[22px] bg-[#d4d4d4] py-[9px] pl-4 dark:bg-[#1C1C1E] ${draft.trim() || attachments.length ? 'pr-[5px]' : 'pr-4'}`}
+                        className={`flex items-center gap-1 rounded-[22px] bg-[#d4d4d4] py-[9px] pl-4 dark:bg-surface ${draft.trim() || attachments.length ? 'pr-[5px]' : 'pr-4'}`}
                     >
                         <input
                             ref={inputRef}

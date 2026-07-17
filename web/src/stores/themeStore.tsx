@@ -14,6 +14,19 @@ import { warmYouTube } from '@/apps/settings/tonePlayer';
 
 export type Theme = 'light' | 'dark';
 
+export type DarkTheme = 'graphite' | 'black' | 'warm';
+const DARK_THEME_KEY = 'sd-phone:darkTheme';
+const DARK_THEMES: DarkTheme[] = ['graphite', 'black', 'warm'];
+function loadDarkThemeLocal(): DarkTheme {
+    try {
+        const v = window.localStorage.getItem(DARK_THEME_KEY) as DarkTheme | null;
+        return v && DARK_THEMES.includes(v) ? v : 'graphite';
+    } catch { return 'graphite'; }
+}
+function saveDarkThemeLocal(v: DarkTheme) {
+    try { window.localStorage.setItem(DARK_THEME_KEY, v); } catch { /* ignore */ }
+}
+
 interface Security { passcode: string | null; faceId: boolean }
 const SECURITY_KEY = 'sd-phone:security';
 function loadSecurityLocal(): Security {
@@ -66,6 +79,8 @@ export type PhoneAlign =
 interface ThemeState {
     theme:             Theme;
     setTheme:          (t: Theme) => void;
+    darkTheme:         DarkTheme;
+    setDarkTheme:      (t: DarkTheme) => void;
     wallpaper:         string;
     setWallpaper:      (url: string) => void;
     blurHomescreen:    boolean;
@@ -117,6 +132,7 @@ function persistSecurity(pin: string | null, face: boolean) {
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
     theme: 'light',
+    darkTheme: isFiveM ? 'graphite' : loadDarkThemeLocal(),
     wallpaper: isFiveM ? lockscreenAsset : (loadWallpaperLocal() ?? devDefaultAsset),
     blurHomescreen: false,
     brightness: 100,
@@ -153,6 +169,12 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
         const key = wallpaperKey(value);
         if (isFiveM) void fetchNui('sd-phone:settings:setWallpaper', { wallpaper: key }).catch(() => {});
         else saveWallpaperLocal(key);
+    },
+
+    setDarkTheme: (next) => {
+        set({ darkTheme: next });
+        if (isFiveM) void fetchNui('sd-phone:settings:setDarkTheme', { darkTheme: next }).catch(() => {});
+        else saveDarkThemeLocal(next);
     },
 
     setBlurHomescreen: (v) => set({ blurHomescreen: v }),
@@ -243,7 +265,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
                 window.setTimeout(() => get().hydrate(attempt + 1), HYDRATE_RETRY_MS);
             }
         };
-        void fetchNui<{ data?: { ringtone?: string; notificationTone?: string; customRingtones?: CustomTone[]; customNotificationTones?: CustomTone[]; airplaneMode?: boolean; hour24?: boolean; lockClock?: Partial<LockClock>; passcode?: string | null; faceId?: boolean; wallpaper?: string; chatTextScale?: number } }>('sd-phone:settings:get')
+        void fetchNui<{ data?: { ringtone?: string; notificationTone?: string; customRingtones?: CustomTone[]; customNotificationTones?: CustomTone[]; airplaneMode?: boolean; hour24?: boolean; lockClock?: Partial<LockClock>; passcode?: string | null; faceId?: boolean; wallpaper?: string; chatTextScale?: number; darkTheme?: string } }>('sd-phone:settings:get')
             .then(res => {
                 if (!res?.data) { retry(); return; }
                 const d = res.data;
@@ -253,6 +275,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
                 if (d.notificationTone) patch.notificationTone = d.notificationTone;
                 if (typeof d.airplaneMode === 'boolean') patch.airplaneMode = d.airplaneMode;
                 if (typeof d.hour24 === 'boolean') patch.hour24 = d.hour24;
+                if (typeof d.darkTheme === 'string' && (DARK_THEMES as string[]).includes(d.darkTheme)) patch.darkTheme = d.darkTheme as DarkTheme;
                 if (typeof d.chatTextScale === 'number') patch.chatTextScale = clampChatScale(d.chatTextScale);
                 if (d.lockClock && typeof d.lockClock === 'object') patch.lockClock = { ...DEFAULT_LOCK_CLOCK, ...d.lockClock };
                 const pin = typeof d.passcode === 'string' && d.passcode ? d.passcode : null;

@@ -14,7 +14,7 @@ export function PickupDot() {
     return <span className="block h-3.5 w-3.5 rounded-full border-2 border-white bg-[#22c55e] shadow" />;
 }
 export function DropoffPin() {
-    return <span className="block h-3.5 w-3.5 rounded-[3px] border-2 border-white bg-black shadow dark:bg-white dark:border-black" />;
+    return <span className="block h-3.5 w-3.5 rounded-[3px] border-2 border-white bg-black shadow dark:bg-white dark:border-base" />;
 }
 export function CarMarker({ color = '#111' }: { color?: string }) {
     return (

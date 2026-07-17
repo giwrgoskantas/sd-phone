@@ -91,10 +91,10 @@ function SwBtn({ label, onClick, variant, disabled = false, isDark }: {
     disabled?: boolean;
     isDark:   boolean;
 }) {
-    const bg = disabled           ? (isDark ? '#1C1C1E' : '#E4E4EA')
+    const bg = disabled           ? (isDark ? 'rgb(var(--surface))' : '#E4E4EA')
              : variant === 'green' ? (isDark ? '#1A3D20' : '#D6F2DD')
              : variant === 'red'   ? (isDark ? '#3D1A1A' : '#FBD9D6')
-             :                       (isDark ? '#2C2C2E' : '#E4E4EA');
+             :                       (isDark ? 'rgb(var(--elevated))' : '#E4E4EA');
     const fg = disabled           ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')
              : variant === 'green' ? (isDark ? '#30D158' : '#34C759')
              : variant === 'red'   ? (isDark ? '#FF453A' : '#FF3B30')

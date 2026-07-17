@@ -115,7 +115,7 @@ const AppHost = memo(function AppHost({ id, ctx, active, openKey, origin, expand
             }}
         >
             <DeckActiveProvider value={active}>
-                <Suspense fallback={<div className="absolute inset-0 bg-white dark:bg-black" />}>{node}</Suspense>
+                <Suspense fallback={<div className="absolute inset-0 bg-white dark:bg-base" />}>{node}</Suspense>
             </DeckActiveProvider>
         </div>
     );

@@ -7,7 +7,7 @@ export function SheetList({ empty, children }: { empty?: string; children?: Reac
     if (empty !== undefined) {
         return <p className="py-6 text-center text-[15px] text-ios-gray">{empty}</p>;
     }
-    return <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">{children}</div>;
+    return <div className="overflow-hidden rounded-[12px] bg-[#e5e5e5] dark:bg-surface">{children}</div>;
 }
 
 export function SheetRow({ rowRef, asButton = false, selected = false, disabled = false, onPress, leading, title, titleClass = 'text-[21px]', subtitle, subtitleClass = 'truncate text-ios-gray', trailing, actions, divider }: {

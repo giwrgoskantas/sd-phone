@@ -75,7 +75,7 @@ export function ListingDetail({ item, backLabel, itemNoun = t('classifieds.post'
 
     return (
         <div
-            className="absolute inset-0 z-40 flex flex-col bg-[#f2f2f2] font-sf dark:bg-black"
+            className="absolute inset-0 z-40 flex flex-col bg-[#f2f2f2] font-sf dark:bg-base"
             style={{
                 animation: exiting
                     ? 'ios-pop 0.3s cubic-bezier(0.32,0.72,0,1) forwards'
@@ -94,7 +94,7 @@ export function ListingDetail({ item, backLabel, itemNoun = t('classifieds.post'
 
             <Scroller className="min-h-0 flex-1 pb-8">
                 <div
-                    className="relative aspect-square w-full touch-none select-none overflow-hidden bg-[#e5e5e5] dark:bg-[#1c1c1e]"
+                    className="relative aspect-square w-full touch-none select-none overflow-hidden bg-[#e5e5e5] dark:bg-surface"
                     onPointerDown={onPointerDown}
                     onPointerMove={onPointerMove}
                     onPointerUp={endDrag}

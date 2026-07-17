@@ -21,12 +21,12 @@ export function AlbumPickerSheet({ albums, count, onPick, onNewAlbum, onClose }:
     }
 
     return (
-        <Sheet onClose={handleClose} fit="content" grabber={false} className="bg-[#d4d4d4] pb-7 dark:bg-[#1c1c1e]">
+        <Sheet onClose={handleClose} fit="content" grabber={false} className="bg-[#d4d4d4] pb-7 dark:bg-surface">
             {({ close }) => {
                 function runThenClose(action: () => void) { pending.current = action; close(); }
                 return (
                     <>
-                        <div className="sticky top-0 flex items-center justify-between border-b border-black/10 bg-[#d4d4d4]/95 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#1c1c1e]/95">
+                        <div className="sticky top-0 flex items-center justify-between border-b border-black/10 bg-[#d4d4d4]/95 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-surface/95">
                             <span className="text-[15px] font-semibold">
                                 {t('photos.addPhotosToTitle', 'Add {count} {noun} to…', { count, noun: count === 1 ? t('photos.photoSingular', 'Photo') : t('photos.photoPlural', 'Photos') })}
                             </span>

@@ -40,7 +40,7 @@ export function WallpaperPage({ onBack }: { onBack: () => void }) {
             <div className="flex-1 overflow-y-auto no-scrollbar">
                 <div className="mt-6 flex flex-col gap-5 px-4 pb-10">
 
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <button
                             type="button"
                             onClick={() => setShowPicker(true)}
@@ -53,13 +53,13 @@ export function WallpaperPage({ onBack }: { onBack: () => void }) {
                         </button>
                     </div>
 
-                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-[#1C1C1E]">
+                    <div className="overflow-hidden rounded-[10px] bg-[#e5e5e5] dark:bg-surface">
                         <div className="flex gap-3 p-4">
                             <LockThumb  wallpaper={wallpaper} time={time} date={date} />
                             <HomeThumb  wallpaper={wallpaper} />
                         </div>
 
-                        <div className="h-[0.5px] bg-ios-gray4 dark:bg-[#38383A]" />
+                        <div className="h-[0.5px] bg-ios-gray4 dark:bg-control" />
 
                         <button
                             type="button"
