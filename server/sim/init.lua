@@ -1,0 +1,295 @@
+---@type table sd-phone config root (configs/config.lua).
+local config   = require 'configs.config'
+---@type table SIM feature flags (server.sim.state): active + mode, flipped on here.
+local state    = require 'server.sim.state'
+
+-- Feature disabled: leave every flag off and register nothing - stock sd-phone behaviour.
+if not config.Sim or not config.Sim.Enabled then return {} end
+
+---@type table SIM registry persistence (server.sim.store).
+local simStore = require 'server.sim.store'
+---@type table Slot-level inventory access for SIMs (server.sim.inv).
+local siminv   = require 'server.sim.inv'
+---@type table SIM session resolution (server.sim.session): source -> acting identity.
+local session  = require 'server.sim.session'
+---@type table Cloud-backup restore engine (server.sim.backup).
+local backup   = require 'server.sim.backup'
+---@type table Player bridge (bridge.server.player): the getIdentifier funnel wrapped below.
+local player   = require 'bridge.server.player'
+---@type table Inventory bridge (bridge.server.inventory): usable-item registration + canCarry.
+local inv      = require 'bridge.server.inventory'
+---@type table Shared server helpers (server.util): ok/fail envelopes + number formatting.
+local util     = require 'server.util'
+
+local backend = siminv.backend()
+if not backend then
+    print('^1[sd-phone:sim]^0 Sim.Enabled is on but the running inventory has no per-slot '
+        .. 'metadata support (needs ox_inventory or a QBCore PlayerData.items inventory). '
+        .. 'Unique phones stay OFF.')
+    return {}
+end
+
+state.active = true
+state.mode   = (config.Sim.UseContainers and backend == 'ox') and 'container' or 'metadata'
+
+-- The one seam every app module resolves identity through: from here on, "who is calling" is
+-- the identity of the SIM in their phone. No SIM -> nil -> every callback fails closed (no
+-- service). getRealIdentifier keeps the unwrapped resolver for character-scoped concerns
+-- (SIM ownership, cloud backups).
+session.setRealResolver(player.getRealIdentifier)
+function player.getIdentifier(source)
+    return session.identity(source)
+end
+
+-- Schema bootstrap.
+CreateThread(function()
+    local ok, err = pcall(simStore.ensureSchema)
+    if not ok then
+        print(('^1[sd-phone:sim]^0 schema bootstrap failed: %s'):format(err))
+        return
+    end
+    if state.mode == 'container' then siminv.registerContainers() end
+    print(('^2[sd-phone:sim]^0 unique phones active (%s mode, %s backend)'):format(state.mode, backend))
+end)
+
+-- ox_inventory: watch SIM/phone item moves so a pulled SIM cuts service within a swap, not a
+-- cache TTL. Any matching move flushes the whole session cache (rare event, cheap rescan) and
+-- pushes fresh state to the players involved.
+if backend == 'ox' then
+    local watched = { [config.Sim.SimItem] = true }
+    for item in pairs(siminv.phoneColors) do watched[item] = true end
+    pcall(function()
+        exports.ox_inventory:registerHook('swapItems', function(payload)
+            if not watched[payload.fromSlot and payload.fromSlot.name or ''] then return end
+            SetTimeout(0, function()
+                session.invalidate(nil)
+                local src = tonumber(payload.source)
+                if src then session.push(src) end
+            end)
+        end, {})
+    end)
+end
+
+---Extracts the used item's slot + SIM number for both usable-item callback shapes (ox passes a
+---slot argument and metadata lives on the slot; qb passes an item table with .slot/.info).
+---@param source number player server id
+---@param itemArg any second usable-callback argument
+---@param slotArg any fourth usable-callback argument
+---@return number|nil slot, string|nil number
+local function usedSim(source, itemArg, slotArg)
+    local slot, number
+    if type(itemArg) == 'table' then
+        slot = tonumber(itemArg.slot)
+        local md = itemArg.metadata or itemArg.info
+        if type(md) == 'table' then number = md.number end
+    end
+    slot = slot or tonumber(slotArg)
+    if backend == 'ox' and slot and not number then
+        local sd = exports.ox_inventory:GetSlot(source, slot)
+        if sd and sd.metadata then number = sd.metadata.number end
+    end
+    local digits = util.digits(number)
+    return slot, digits ~= '' and digits or nil
+end
+
+---Sends a simple ox_lib toast to a player.
+---@param source number player server id
+---@param description string toast text
+---@param kind string 'success' | 'error' | 'inform'
+local function toast(source, description, kind)
+    TriggerClientEvent('ox_lib:notify', source, { title = 'Phone', description = description, type = kind })
+end
+
+-- Using a sim_card: metadata mode installs it into the first phone without service (consuming
+-- the item); container mode just reads the number back (installation is dragging it into the
+-- phone's SIM tray).
+inv.registerUsable(config.Sim.SimItem, function(source, itemArg, _invArg, slotArg)
+    local slot, number = usedSim(source, itemArg, slotArg)
+    if not number then
+        toast(source, 'This SIM card is blank.', 'error')
+        return
+    end
+
+    if state.mode == 'container' then
+        toast(source, ('SIM number: %s. Right-click a phone to open its SIM tray.')
+            :format(util.formatNumber(number)), 'inform')
+        return
+    end
+
+    local phones = siminv.findPhones(source)
+    if #phones == 0 then
+        toast(source, 'You need a phone to install a SIM card.', 'error')
+        return
+    end
+    local target
+    for _, phone in ipairs(phones) do
+        if not siminv.getSimNumber(source, phone) then
+            target = phone
+            break
+        end
+    end
+    if not target then
+        toast(source, 'Every phone you carry already has a SIM installed.', 'error')
+        return
+    end
+
+    if not siminv.takeSimItem(source, slot) then
+        toast(source, 'Could not take the SIM card.', 'error')
+        return
+    end
+    if not siminv.setPhoneSim(source, target.slot, number) then
+        siminv.giveSimItem(source, number)
+        toast(source, 'Could not install the SIM card.', 'error')
+        return
+    end
+
+    session.push(source)
+    toast(source, ('SIM installed - your number is %s.'):format(util.formatNumber(number)), 'success')
+end)
+
+---The player's SIM panel snapshot for Settings -> SIM & Backup. Read-only.
+lib.callback.register('sd-phone:server:sim:get', function(source)
+    local realCid = player.getRealIdentifier(source)
+    if not realCid then return util.fail('Player not found') end
+    local s = session.resolve(source)
+    local b = simStore.getBackup(realCid)
+    return util.ok({
+        mode          = state.mode,
+        hasSim        = s ~= nil and s.hasSim or false,
+        number        = s and s.number or nil,
+        ejectable     = state.mode == 'metadata' and config.Sim.AllowEject ~= false
+                        and s ~= nil and s.hasSim or false,
+        backupOn      = config.Sim.Backup and config.Sim.Backup.Enabled ~= false or false,
+        backupEnabled = b ~= nil and b.enabled or false,
+        canRestore    = b ~= nil and b.enabled and s ~= nil and s.hasSim
+                        and s.identity ~= b.identity or false,
+    })
+end)
+
+---Ejects the installed SIM (metadata mode): clears the phone item's number and hands the
+---sim_card item back with its number intact. The phone loses service immediately.
+lib.callback.register('sd-phone:server:sim:eject', function(source)
+    if state.mode ~= 'metadata' or config.Sim.AllowEject == false then
+        return util.fail('Take the SIM out of the phone\'s SIM tray instead.')
+    end
+    local s = session.resolve(source)
+    if not s or not s.hasSim or not s.number or not s.slot then
+        return util.fail('No SIM card is installed.')
+    end
+    if not inv.canCarry(source, config.Sim.SimItem, 1) then
+        return util.fail('You have no room for the SIM card.')
+    end
+    if not siminv.setPhoneSim(source, s.slot, nil) then
+        return util.fail('Could not eject the SIM card.')
+    end
+    siminv.giveSimItem(source, s.number)
+    session.push(source)
+    return util.ok()
+end)
+
+---Toggles the caller's cloud backup. Enabling points the character's backup at the CURRENT SIM
+---profile. Backups only ever copy data the caller can already read, never grant new access.
+lib.callback.register('sd-phone:server:sim:backup:set', function(source, payload)
+    if not (config.Sim.Backup and config.Sim.Backup.Enabled ~= false) then
+        return util.fail('Cloud backup is disabled.')
+    end
+    local realCid = player.getRealIdentifier(source)
+    if not realCid then return util.fail('Player not found') end
+    payload = type(payload) == 'table' and payload or {}
+
+    if payload.on == true then
+        local s = session.resolve(source)
+        if not s or not s.identity then return util.fail('Install a SIM card first.') end
+        simStore.setBackup(realCid, s.identity, true)
+    else
+        local b = simStore.getBackup(realCid)
+        if b then simStore.setBackup(realCid, b.identity, false) end
+    end
+    return util.ok()
+end)
+
+---Restores the caller's cloud backup onto the current SIM profile (data copy; the number stays
+---the new SIM's). Afterwards the backup pointer follows the restored profile.
+lib.callback.register('sd-phone:server:sim:backup:restore', function(source)
+    if not (config.Sim.Backup and config.Sim.Backup.Enabled ~= false) then
+        return util.fail('Cloud backup is disabled.')
+    end
+    local realCid = player.getRealIdentifier(source)
+    if not realCid then return util.fail('Player not found') end
+    local b = simStore.getBackup(realCid)
+    if not b or not b.enabled then return util.fail('No cloud backup found for this character.') end
+    local s = session.resolve(source)
+    if not s or not s.identity or not s.number then return util.fail('Install a SIM card first.') end
+    if s.identity == b.identity then return util.fail('This phone already holds the backed-up data.') end
+
+    local rows = backup.restore(b.identity, s.identity, s.number)
+    simStore.setBackup(realCid, s.identity, true)
+    print(('^3[sd-phone:sim]^0 restored backup %s -> %s for %s (%d rows)')
+        :format(b.identity, s.identity, realCid, rows))
+    return util.ok({ rows = rows })
+end)
+
+---Server export: create a sim_card and put it in a player's inventory. `opts.citizenid` makes a
+---character-bound SIM (their existing data/number carry over); otherwise the SIM is blank with
+---a fresh number. `opts.number` requests a specific number (fails if taken).
+---@param source number player server id
+---@param opts? { number?: string, citizenid?: string }
+---@return string|nil number bare-digit number on success, nil on failure
+exports('giveSimCard', function(source, opts)
+    if type(source) ~= 'number' or not GetPlayerName(source) then return nil end
+    opts = type(opts) == 'table' and opts or {}
+    local number = simStore.create({ number = opts.number, bindCid = opts.citizenid })
+    if not number then return nil end
+    if not siminv.giveSimItem(source, number) then return nil end
+    return number
+end)
+
+---Server export: the SIM number installed in a player's active phone, nil without one.
+---@param source number player server id
+---@return string|nil number bare-digit SIM number
+exports('getSimNumber', function(source)
+    if type(source) ~= 'number' then return nil end
+    local s = session.resolve(source)
+    return s and s.number or nil
+end)
+
+---Server export: true when the player's active phone has a SIM installed.
+---@param source number player server id
+---@return boolean
+exports('hasSim', function(source)
+    if type(source) ~= 'number' then return false end
+    local s = session.resolve(source)
+    return s ~= nil and s.hasSim or false
+end)
+
+---Server export: true while unique phones / SIM mode is live (config on + backend supported).
+---@return boolean
+exports('isSimModeActive', function()
+    return state.active
+end)
+
+---/givesim (admin): hand a player a SIM card. `bind` makes it a character-bound SIM carrying
+---the target's existing number/data; default is a blank SIM with a fresh number.
+lib.addCommand('givesim', {
+    help = 'Give a player a SIM card (unique-phones mode).',
+    restricted = 'group.admin',
+    params = {
+        { name = 'target', type = 'playerId', help = 'Player server id' },
+        { name = 'bind',   type = 'string',   help = "'bind' = carry over the target's own number/data", optional = true },
+    },
+}, function(source, args)
+    local target = args.target
+    local opts = {}
+    if args.bind == 'bind' then opts.citizenid = player.getRealIdentifier(target) end
+    local number = exports['sd-phone']:giveSimCard(target, opts)
+    local reply = number
+        and ('Gave SIM %s to player %d.'):format(util.formatNumber(number), target)
+        or 'Could not create the SIM card.'
+    if source and source > 0 then
+        toast(source, reply, number and 'success' or 'error')
+    else
+        print('[sd-phone:sim] ' .. reply)
+    end
+end)
+
+return { }

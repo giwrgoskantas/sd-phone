@@ -129,6 +129,63 @@ Full guide: [docs.samueldev.shop/resources/phone/installation](https://docs.samu
 
 The pre-built UI ships at `web/build/`, so a fresh clone runs without touching npm. To rebuild after UI changes: `cd web && npm install && npm run build`.
 
+## Unique Phones & SIM Cards (optional)
+
+Off by default. Flip `Enabled = true` in `configs/simcards.lua` and phone numbers stop belonging to characters — they live on **SIM card items**. Whichever SIM is in a phone decides whose data that phone shows: messages, call log, contacts, photos, app logins, settings — everything. Steal someone's phone with the SIM inside and you're reading *their* phone; without any SIM, a phone opens to a **No SIM** screen with no service and every server action refused.
+
+### Setup
+
+1. Enable the feature in `configs/simcards.lua` and add the SIM item to your inventory (ox_inventory example):
+
+   ```lua
+   ['sim_card'] = {
+       label = 'SIM Card',
+       weight = 5,
+       stack = false,
+       close = true,
+       consume = 0, -- required: sd-phone consumes the item itself on install
+       server = { export = 'sd-phone.useSim_card' },
+   },
+   ```
+
+2. Give players a phone item plus a SIM:
+   - `/givesim <playerId>` (admin) — a blank SIM with a fresh number.
+   - `/givesim <playerId> bind` — a **character-bound** SIM: it carries the player's existing number and their existing phone data, so servers switching the feature on lose nothing.
+   - Or from another resource: `exports['sd-phone']:giveSimCard(source, { citizenid = cid })`.
+3. Phones handed out **before** enabling the feature keep working as items, but in container mode they have no SIM tray until re-issued.
+
+### Two attach modes
+
+| | `UseContainers = false` (default, universal) | `UseContainers = true` (ox_inventory only) |
+|---|---|---|
+| Install SIM | **Use the sim_card item** — it's consumed and written onto your phone | Right-click/use the phone → SIM tray opens → drag the SIM in |
+| Eject SIM | Settings → **SIM & Backup** → *Eject SIM Card* (returns the item, number intact) | Drag the SIM out of the tray |
+| Using the phone item | Opens the phone UI | Opens the SIM tray (ox intercepts container items); the phone UI opens via the keybind (default F1) |
+| Backends | ox_inventory, and QBCore inventories that sync `PlayerData.items` (qb/ps/lj) | ox_inventory |
+
+Plain ESX inventory has no item metadata and cannot support unique phones. Other inventories (qs / tgiann / codem / origen / jaksam) need a small adapter in `server/sim/inv.lua`.
+
+### What players should know
+
+- **No SIM = no service.** The phone opens but shows the No SIM screen; nothing works until a SIM is installed.
+- **Your number lives on the SIM.** Move the SIM to another phone and the number (and the whole phone profile) moves with it.
+- **Passcodes still protect you.** A thief sees your lockscreen; if you set a passcode they must know it — Face Unlock never works for anyone but the SIM's original owner.
+- **Cloud Backup** (Settings → SIM & Backup) belongs to your **character**, not the phone. Turn it on and, after losing your phone, get a new phone + blank SIM and press *Restore from Backup*: your messages, contacts, photos, notes and settings are copied to the new phone. The old number stays on the stolen SIM — your new SIM keeps its own number, and a thief can never restore *your* backup.
+
+### SIM exports
+
+```lua
+-- Create + give a SIM card. opts.citizenid makes it character-bound (carries that
+-- character's number/data); opts.number requests a specific number (nil if taken).
+local number = exports['sd-phone']:giveSimCard(source, { citizenid = nil, number = nil })
+
+exports['sd-phone']:getSimNumber(source)   -- bare-digit number in the player's active phone, or nil
+exports['sd-phone']:hasSim(source)         -- true when their active phone has a SIM
+exports['sd-phone']:isSimModeActive()      -- true while unique phones are enabled + supported
+```
+
+Existing number exports (`getPhoneNumber`, `getSourceByNumber`, `getIdentifierByNumber`, `isNumberInService`, `hasPhone`) automatically follow the SIM when the feature is on.
+
 ---
 
 <div align="center">

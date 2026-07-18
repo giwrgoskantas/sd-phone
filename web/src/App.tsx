@@ -38,6 +38,8 @@ import type { AppDef } from '@/core/types';
 import { listInstalledApps, installApp, uninstallApp, loadHomeLayout, saveHomeLayout, parseLayout, type SavedLayout } from '@/apps/appstore/appsApi';
 import { customToAppDef, installedCustomIds, isCustomApp, setCustomInstalled, useCustomApps, useCustomAppsStore } from '@/stores/customAppsStore';
 import { resolveWallpaper } from '@/shell/wallpapers';
+import { NoSimScreen } from '@/shell/NoSimScreen';
+import { useNoSim, useSimStore } from '@/stores/simStore';
 import { playOnce } from '@/apps/settings/tonePlayer';
 import { resolveTone, toneUrl } from '@/apps/settings/tones';
 import { AlarmRinging, AlarmPeekBanner } from '@/apps/clock/AlarmRinging';
@@ -163,6 +165,19 @@ function AppContent() {
     const downloadQueue = useRef<string[]>([]);
     const downloadTimer = useRef<number>();
 
+    const noSim = useNoSim();
+    // A pulled SIM drops the phone straight back to the (blocked) lock state: no app stays
+    // foregrounded and the switcher/control-center close.
+    useEffect(() => {
+        if (noSim) {
+            setLocked(true);
+            setCurrentApp(null);
+            setSwitcherOpen(false);
+            setSwitcherClosing(false);
+            setCcOpen(false);
+        }
+    }, [noSim]);
+
     const [setup, setSetup] = useState<SetupSaved>(() => loadSetup());
     // Theme and wallpaper are NOT re-applied from the saved setup on launch. Both
     // persist server-side (phone_settings) and hydrate via settings:get on mount;
@@ -200,6 +215,7 @@ function AppContent() {
         if (!data) return;
         if (data.locale) useLocaleStore.getState().applyServerDefault(data.locale);   // server default, unless the player already picked their own
         if (data.mailDomain) setMailDomain(data.mailDomain);
+        useSimStore.getState().apply(data.sim);
         const nextView: ViewState = {
             apps:          data.apps,
             dock:          data.dock,
@@ -236,6 +252,10 @@ function AppContent() {
         if (isFiveM) void fetchNui<Record<string, number>>('sd-phone:badges:get').then(m => useBadgeStore.getState().setServer(m ?? {}));
         if (isFiveM) void fetchNui<{ on: boolean }>('sd-phone:flashlight:state').then(r => setFlashlightOn(!!r?.on));
         useCustomAppsStore.getState().hydrate();
+    }, []));
+
+    useNuiEvent('sd-phone:simState', useCallback((data) => {
+        useSimStore.getState().apply(data);
     }, []));
 
     useNuiEvent('sd-phone:close', useCallback(() => {
@@ -890,10 +910,11 @@ function AppContent() {
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-transparent" />
                         <StatusBar
                             use24h={hour24}
-                            signal={airplaneMode ? 0 : (lv?.signal ?? 4)}
-                            showWifi={airplaneMode ? false : ((lv?.showWifi ?? true) && ccWifi)}
+                            signal={(airplaneMode || noSim) ? 0 : (lv?.signal ?? 4)}
+                            showWifi={(airplaneMode || noSim) ? false : ((lv?.showWifi ?? true) && ccWifi)}
                             battery={battery}
                             airplane={airplaneMode}
+                            noSim={noSim}
                             light
                         />
                         {ringingAlarm ? (
@@ -960,21 +981,24 @@ function AppContent() {
                 </button>
             )}
             <PhoneShell cameraActive={cameraMode} landscape={cameraMode && landscape} entering={entering} leaving={leaving} onClose={closePhone} frameColor={frameColor} radioIsland={radioIsland} alarmIsland={{ ringing: !!ringingAlarm, since: ringingSince }}>
-                {!(showSetup && setupHello) && (
+                {!(showSetup && setupHello && !noSim) && (
                     <StatusBar
                         use24h={hour24}
-                        signal={airplaneMode ? 0 : view.signal}
-                        showWifi={airplaneMode ? false : (view.showWifi && ccWifi)}
+                        signal={(airplaneMode || noSim) ? 0 : view.signal}
+                        showWifi={(airplaneMode || noSim) ? false : (view.showWifi && ccWifi)}
                         battery={battery}
                         airplane={airplaneMode}
-                        light={showSetup ? false : (cameraMode ? true : (statusLightOverride ?? statusBarAutoLight ?? statusLight))}
-                        controlHint={!showSetup && !cameraMode && !ccOpen && !homeEditing}
+                        noSim={noSim}
+                        light={noSim ? true : (showSetup ? false : (cameraMode ? true : (statusLightOverride ?? statusBarAutoLight ?? statusLight)))}
+                        controlHint={!showSetup && !cameraMode && !ccOpen && !homeEditing && !noSim}
                         editing={homeEditing && onHomescreen}
                     />
                 )}
                 <VolumeHUD suppressed={ccOpen} />
 
-                {showSetup ? (
+                {noSim ? (
+                    <NoSimScreen />
+                ) : showSetup ? (
                     <SetupFlow onDone={handleSetupDone} onHelloChange={setSetupHello} />
                 ) : locked ? (
                     <Lockscreen
