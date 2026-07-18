@@ -9,11 +9,11 @@ body:
         Please provide as much information as possible so that we can get this resolved efficiently.
 
   - type: input
-    id: resource
+    id: area
     attributes:
-      label: Affected app
-      description: Which app does this issue concern?
-      placeholder: "e.g.: Mail, Maps, Services"
+      label: Affected area
+      description: Which app or part of the phone is affected? Say 'whole phone' or 'not sure' if it isn't tied to one.
+      placeholder: "e.g.: Mail app, lockscreen, startup / database, ESX integration"
     validations:
       required: true
 
