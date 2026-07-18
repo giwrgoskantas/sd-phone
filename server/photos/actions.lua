@@ -40,11 +40,39 @@ function actions.list(source)
     for i = 1, #rows do
         out[i] = shapePhoto(rows[i])
     end
-    return ok({ photos = out })
+    return ok({ photos = out, canImport = actions.importEnabled() })
 end
 
 ---@type integer Longest accepted photo URL in bytes, matching the phone_photos.url VARCHAR(512) column.
 local MAX_URL_BYTES = 512
+
+---True when config.Photos.ImportHosts is non-empty, i.e. player URL import is enabled.
+---@return boolean
+function actions.importEnabled()
+    local hosts = photosCfg.ImportHosts
+    return type(hosts) == 'table' and #hosts > 0
+end
+
+---Whitelist check for PLAYER-supplied import URLs against config.Photos.ImportHosts. Entries
+---match the hostname exactly, or any subdomain when prefixed '*.'. Camera uploads never pass
+---through here - their URL comes from the server-side uploader.
+---@param url any
+---@return boolean
+function actions.isAllowedImportUrl(url)
+    if type(url) ~= 'string' then return false end
+    local host = url:lower():match('^https?://([%w%.%-]+)[:/]') or url:lower():match('^https?://([%w%.%-]+)$')
+    if not host then return false end
+    for _, entry in ipairs(photosCfg.ImportHosts or {}) do
+        entry = tostring(entry):lower()
+        if entry:sub(1, 2) == '*.' then
+            local suffix = entry:sub(2) -- '.domain.com'
+            if host:sub(-#suffix) == suffix or host == entry:sub(3) then return true end
+        elseif host == entry then
+            return true
+        end
+    end
+    return false
+end
 
 ---Persists a photo URL against the caller: the URL must be a non-empty http(s) string within
 ---the column cap, and the gallery is pruned back under config.Photos.MaxPhotosPerPlayer.

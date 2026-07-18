@@ -25,4 +25,12 @@ return {
     -- client and server agree.
     MinAlbumNameLength = 1,
     MaxAlbumNameLength = 40,
+
+    -- Hosts players may import image URLs from (the Import button in Photos).
+    -- Exact hostnames, or '*.domain.com' to allow every subdomain. The check is
+    -- server-side; camera uploads bypass it (their URL comes from the uploader,
+    -- not the player). An empty list disables URL import and hides the button.
+    ImportHosts = {
+        '*.fivemanage.com',
+    },
 }
