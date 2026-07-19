@@ -18,6 +18,8 @@ export interface UseOnlineLobbyOptions {
     onStart: (d: OnlineStartData) => void;
     /** An opponent move arrived (the `move` payload of the `<game>:move` event). */
     onMove?: (move: unknown) => void;
+    /** A turn-neutral relay arrived (the `data` payload of the `<game>:relay` event). */
+    onRelay?: (data: unknown) => void;
     /** Both sides finished setup: the match is live and `turn` says who moves first. */
     onBegin?: (d: { turn: string; you: string }) => void;
     /** The opponent finished their setup; we may still be placing. */
@@ -104,6 +106,9 @@ export function useOnlineLobby(game: string, options: UseOnlineLobbyOptions): On
     });
     useGameEvent<{ move?: unknown }>(`${game}:move`, d => {
         if (d?.move != null) opts.current.onMove?.(d.move);
+    });
+    useGameEvent<{ data?: unknown }>(`${game}:relay`, d => {
+        if (d?.data != null) opts.current.onRelay?.(d.data);
     });
     useGameEvent<{ turn?: string; you?: string }>(`${game}:begin`, d => {
         if (d?.turn && d?.you) opts.current.onBegin?.({ turn: d.turn, you: d.you });

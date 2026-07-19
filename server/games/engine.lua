@@ -553,6 +553,19 @@ lib.callback.register('sd-phone:server:games:move', function(src, payload)
     return ok()
 end)
 
+---Turn-neutral side channel: relays a payload straight to the opponent without touching whose turn
+---it is. Battleship echoes a shot's hit/miss back to the shooter through this, which the
+---turn-flipping move handler above cannot. Participants only; a non-participant call is a no-op.
+lib.callback.register('sd-phone:server:games:relay', function(src, payload)
+    payload = type(payload) == 'table' and payload or {}
+    local g = games[payload.gameId]
+    if not g then return ok() end
+    if not sideOf(g, src) then return ok() end
+    local opp = opponentOf(g, src)
+    if online(opp) then pushClient(opp, g.game, 'relay', { gameId = payload.gameId, data = payload.data }) end
+    return ok()
+end)
+
 ---Resign: forfeits the pot to the opponent and ends the session; a non-participant call is a
 ---no-op.
 lib.callback.register('sd-phone:server:games:resign', function(src, payload)

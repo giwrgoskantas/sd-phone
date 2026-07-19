@@ -15,7 +15,7 @@ import { LobbyRoom } from '@/apps/_games/LobbyRoom';
 import { Leaderboard } from '@/apps/_games/Leaderboard';
 import { GameOverDialog } from '@/apps/_games/GameOverDialog';
 import { GameHeader } from '@/apps/_games/GameHeader';
-import { finishApi, moveApi, registerGameSides, reportResultApi, setupReadyApi, type Side } from '@/apps/_games/onlineApi';
+import { finishApi, moveApi, registerGameSides, relayApi, reportResultApi, setupReadyApi, type Side } from '@/apps/_games/onlineApi';
 import { useOnlineLobby } from '@/apps/_games/useOnlineLobby';
 import { loadLeaderboard, loadStats, recordResultApi, type GameLeaderboard, type GameStats } from '@/apps/_games/statsApi';
 
@@ -100,6 +100,7 @@ export function Battleship({ onClose: _onClose }: Props) {
             const m = mv as BSMove;
             if (m) handleIncoming(m);
         },
+        onRelay: data => handleRelay(data),
         onBegin: d => {
             // Both fleets are placed; the server says who shoots first.
             phaseRef.current = 'firing';
@@ -109,8 +110,9 @@ export function Battleship({ onClose: _onClose }: Props) {
             if (pendingShot.current) {
                 const shot = pendingShot.current;
                 pendingShot.current = null;
-                if (resolveIncoming(shot)) { sendFinal(); return; }
-                setMyTurn(true);
+                const lost = resolveIncoming(shot);
+                relayResult();
+                setMyTurn(!lost);
                 return;
             }
             setMyTurn(mine);
@@ -168,29 +170,37 @@ export function Battleship({ onClose: _onClose }: Props) {
         return Object.values(next).filter(v => v === 'hit').length >= FLEET_CELLS;
     }, []);
 
-    const sendFinal = () => {   // loser tells the winner the result of their finishing shot
-        if (onlineRef.current) moveApi(onlineRef.current.gameId, { shot: null, prevResult: lastResolved.current });
+    // Echo a just-resolved shot's result back to the shooter over the turn-neutral relay, so their
+    // hit/miss shows immediately instead of riding in on our next move. Does not change turn state.
+    const relayResult = () => {
+        if (onlineRef.current) relayApi(onlineRef.current.gameId, { prevResult: lastResolved.current });
         lastResolved.current = null;
-        setMyTurn(false);
     };
 
+    // A move now carries only the opponent's shot (results travel over the relay). Resolve it, echo
+    // the result straight back, then take my turn - unless it sank my last ship.
     const handleIncoming = useCallback((m: BSMove) => {
-        if (m.prevResult && myLastTarget.current != null) {
-            const tcell = myLastTarget.current;
-            const next: Shots = { ...enemyRef.current, [tcell]: m.prevResult.hit ? 'hit' : 'miss' };
-            writeEnemy(next);
-            myLastTarget.current = null;
-            setFlash(m.prevResult.hit ? (m.prevResult.sunk ? t('battleship.youSankTheir', 'You sank their {name}!', { name: m.prevResult.sunk }) : t('battleship.directHit', 'Direct hit!')) : t('battleship.miss', 'Miss.'));
-            if (Object.values(next).filter(v => v === 'hit').length >= FLEET_CELLS) { setMyTurn(false); return; }
-        }
-        if (m.shot) {
-            // The server holds shots until both sides are ready, so this should no longer
-            // be reachable online - kept as a safety net so a shot can never be dropped.
-            if (phaseRef.current !== 'firing') { pendingShot.current = m.shot; return; }
-            if (resolveIncoming(m.shot)) { sendFinal(); return; }
-        }
-        setMyTurn(true);
+        if (!m.shot) return;
+        // The server holds shots until both sides are ready, so this should no longer be reachable
+        // online - kept as a safety net so a shot can never be dropped.
+        if (phaseRef.current !== 'firing') { pendingShot.current = m.shot; return; }
+        const lost = resolveIncoming(m.shot);
+        relayResult();
+        setMyTurn(!lost);
     }, [resolveIncoming]);
+
+    // The relay carries the result of the shot I just fired: reveal my hit/miss immediately. A relay
+    // never hands me the turn (the opponent shoots next).
+    const handleRelay = useCallback((data: unknown) => {
+        const res = (data as { prevResult?: ShotResult | null } | null)?.prevResult;
+        if (!res || myLastTarget.current == null) return;
+        const tcell = myLastTarget.current;
+        const next: Shots = { ...enemyRef.current, [tcell]: res.hit ? 'hit' : 'miss' };
+        writeEnemy(next);
+        myLastTarget.current = null;
+        setFlash(res.hit ? (res.sunk ? t('battleship.youSankTheir', 'You sank their {name}!', { name: res.sunk }) : t('battleship.directHit', 'Direct hit!')) : t('battleship.miss', 'Miss.'));
+        if (Object.values(next).filter(v => v === 'hit').length >= FLEET_CELLS) setMyTurn(false);
+    }, []);
 
     const resetMatch = useCallback((newMode: Mode, side: '1' | '2', diff: Difficulty) => {
         clearTimeout(aiTimer.current);
@@ -279,8 +289,7 @@ export function Battleship({ onClose: _onClose }: Props) {
             setMyTurn(false);
         } else {
             myLastTarget.current = cell;
-            moveApi(onlineRef.current!.gameId, { shot: { r: rowOf(cell), c: colOf(cell) }, prevResult: lastResolved.current });
-            lastResolved.current = null;
+            moveApi(onlineRef.current!.gameId, { shot: { r: rowOf(cell), c: colOf(cell) }, prevResult: null });
             setMyTurn(false);
         }
     }
