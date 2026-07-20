@@ -84,6 +84,16 @@ lib.callback.register('sd-phone:server:mail:moveToBin', function(src, payload)
     return result
 end)
 
+---Copies a stored attachment into the caller's Voice Memos / Notes.
+lib.callback.register('sd-phone:server:mail:saveAttachment', function(src, payload)
+    return actions.saveAttachment(src, payload)
+end)
+
+---Which of a mail's attachments the caller has already saved to their own apps.
+lib.callback.register('sd-phone:server:mail:attachmentSaveStates', function(src, payload)
+    return actions.attachmentSaveStates(src, payload)
+end)
+
 ---Discarding a draft repushes the badge snapshot.
 lib.callback.register('sd-phone:server:mail:discardDraft', function(src, payload)
     local result = actions.discardDraft(src, payload)

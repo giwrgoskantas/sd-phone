@@ -686,6 +686,102 @@ function actions.discardDraft(source, payload)
     return ok()
 end
 
+---Copies one attachment of a stored mail into the caller's own app: audio into Voice Memos,
+---note into Notes, via each app's cap-checked deliverShare (which also live-pushes the added
+---item). The attachment is read from the persisted row, never from the client, so only content
+---that actually sits in the mailbox can be saved. Ownership-gated.
+---@param source number
+---@param payload { accountEmail?: string, messageId?: string, index?: number }
+---@return table
+function actions.saveAttachment(source, payload)
+    payload = payload or {}
+    local cid, err = requireOwnership(source, payload.accountEmail); if err then return err end
+
+    local acc = store.getAccount(payload.accountEmail)
+    if not acc then return fail('Account not found') end
+    local msg
+    for i = 1, #acc.messages do
+        if acc.messages[i].id == payload.messageId then msg = acc.messages[i]; break end
+    end
+    if not msg then return fail('Message not found') end
+
+    -- Client indices are zero-based over the message's attachments array.
+    local att = type(msg.attachments) == 'table' and msg.attachments[(tonumber(payload.index) or -1) + 1] or nil
+    if type(att) ~= 'table' then return fail('Attachment not found') end
+
+    -- Each branch is idempotent: an identical item already in the target app short-circuits to
+    -- success, so re-saving after an app reopen cannot pile up duplicates.
+    if att.kind == 'photo' then
+        local photoStore = require 'server.photos.store'
+        if photoStore.hasUrl(cid, att.url) then return ok() end
+        -- The URL comes from the stored row (not the player), so the URL-import config gate
+        -- that guards photos:saveUrl does not apply here.
+        local photosActions = require 'server.photos.actions'
+        local res = photosActions.saveFromUrl(source, att.url)
+        if not (res and res.success) then return fail('Could not save to Photos') end
+        if res.data and res.data.photo then
+            TriggerClientEvent('sd-phone:client:photos:added', source, res.data.photo)
+        end
+        return ok()
+    end
+    if att.kind == 'audio' then
+        local voiceStore = require 'server.voicememos.store'
+        if voiceStore.hasUrl(cid, att.url) then return ok() end
+        local voiceActions = require 'server.voicememos.actions'
+        if not voiceActions.deliverShare(source, { name = att.name, url = att.url, duration = att.duration }) then
+            return fail('Could not save to Voice Memos')
+        end
+        return ok()
+    end
+    if att.kind == 'note' then
+        local body = (type(att.body) == 'string' and att.body ~= '') and att.body or (att.title or '')
+        local notesStore = require 'server.notes.store'
+        if notesStore.hasBody(cid, body) then return ok() end
+        local notesActions = require 'server.notes.actions'
+        if not notesActions.deliverShare(source, { body = body, sketches = {}, images = {} }) then
+            return fail('Could not save to Notes')
+        end
+        return ok()
+    end
+    return fail('This attachment cannot be saved')
+end
+
+---Per-attachment saved flags for a stored mail, checked against the caller's own Photos /
+---Voice Memos / Notes (photo+audio by URL, note by body). Ownership-gated; drives which save
+---buttons the reader shows.
+---@param source number
+---@param payload { accountEmail?: string, messageId?: string }
+---@return table
+function actions.attachmentSaveStates(source, payload)
+    payload = payload or {}
+    local cid, err = requireOwnership(source, payload.accountEmail); if err then return err end
+
+    local acc = store.getAccount(payload.accountEmail)
+    if not acc then return fail('Account not found') end
+    local msg
+    for i = 1, #acc.messages do
+        if acc.messages[i].id == payload.messageId then msg = acc.messages[i]; break end
+    end
+    if not msg then return fail('Message not found') end
+
+    local atts = type(msg.attachments) == 'table' and msg.attachments or {}
+    local saved = {}
+    for i = 1, #atts do
+        local a = atts[i]
+        if a.kind == 'photo' then
+            saved[i] = require('server.photos.store').hasUrl(cid, a.url)
+        elseif a.kind == 'audio' then
+            saved[i] = require('server.voicememos.store').hasUrl(cid, a.url)
+        elseif a.kind == 'note' then
+            local body = (type(a.body) == 'string' and a.body ~= '') and a.body or (a.title or '')
+            saved[i] = require('server.notes.store').hasBody(cid, body)
+        else
+            saved[i] = false
+        end
+    end
+    return ok({ saved = saved })
+end
+
 ---Permanently deletes an account the caller is signed into, along with all its mail and
 ---sessions. Gated by the signed-in ownership check.
 ---@param source number

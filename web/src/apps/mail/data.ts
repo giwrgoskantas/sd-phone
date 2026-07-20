@@ -337,6 +337,18 @@ export async function moveToBin(accountEmail: string, messageId: string): Promis
     await fetchNui<Envelope<unknown>>('sd-phone:mail:moveToBin', { accountEmail, messageId });
 }
 
+export async function attachmentSaveStates(accountEmail: string, messageId: string): Promise<boolean[]> {
+    if (!isFiveM) return [];
+    const res = await apiCall<{ saved?: boolean[] }>('sd-phone:mail:attachmentSaveStates', { accountEmail, messageId });
+    return res.success && Array.isArray(res.data?.saved) ? res.data.saved : [];
+}
+
+export async function saveAttachment(accountEmail: string, messageId: string, index: number): Promise<{ ok: boolean; message?: string }> {
+    if (!isFiveM) return { ok: true };
+    const r = await apiCall<unknown>('sd-phone:mail:saveAttachment', { accountEmail, messageId, index });
+    return r.success ? { ok: true } : { ok: false, message: r.message };
+}
+
 export async function discardDraft(accountEmail: string, messageId: string): Promise<void> {
     if (!isFiveM) {
         const i = MOCK.messages.findIndex(m => m.id === messageId && m.folder === 'drafts');

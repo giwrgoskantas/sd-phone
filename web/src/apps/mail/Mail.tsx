@@ -10,7 +10,7 @@ import { MAIL_DOMAIN, accountsConfirmReset, accountsMyNumber, accountsRequestRes
 import { isAuthed, signIn as unlockMail, signOut as lockMail } from '@/stores/authStore';
 import { Compose } from './Compose';
 import {
-    getFolderLabels, deleteAccount, discardDraft, listMail, loadActiveAccountId, loadFolderOrder, markRead,
+    getFolderLabels, deleteAccount, discardDraft, inFolder, listMail, loadActiveAccountId, loadFolderOrder, markRead,
     moveToBin, moveTo, saveActiveAccountId, saveDraft, saveFolderOrder, sendMail, signIn as mailSignIn,
     signOut, signUp as mailSignUp, toggleFlag,
 } from './data';
@@ -223,6 +223,18 @@ export function Mail({ onClose }: { onClose: () => void }) {
 
     const currentMsg = nav.stage === 'detail' ? messages.find(m => m.id === nav.msgId) : null;
 
+    // Prev/next within the open folder, same newest-first order the list shows.
+    const detailSiblings = nav.stage === 'detail'
+        ? [...inFolder(messages, nav.folder, nav.accountId)].sort((a, b) => b.sentAt.localeCompare(a.sentAt))
+        : [];
+    const detailIdx = nav.stage === 'detail' ? detailSiblings.findIndex(m => m.id === nav.msgId) : -1;
+
+    function openSibling(id: string) {
+        const target = messages.find(m => m.id === id);
+        if (target) void handleMarkRead(target);
+        if (nav.stage === 'detail') setNav({ ...nav, msgId: id });
+    }
+
     const defaultComposeAccount = composeFor?.accountId
         ?? (nav.stage === 'list' || nav.stage === 'detail' ? nav.accountId : undefined)
         ?? accounts[0]?.id;
@@ -314,6 +326,9 @@ export function Mail({ onClose }: { onClose: () => void }) {
                 <MailDetail
                     msg={currentMsg}
                     backLabel={nav.accountName ?? getFolderLabels()[nav.folder] ?? t('mail.back', 'Back')}
+                    prevId={detailIdx > 0 ? detailSiblings[detailIdx - 1].id : null}
+                    nextId={detailIdx >= 0 && detailIdx < detailSiblings.length - 1 ? detailSiblings[detailIdx + 1].id : null}
+                    onOpenSibling={openSibling}
                     onBack={() => setNav({ stage: 'list', folder: nav.folder, accountId: nav.accountId, accountName: nav.accountName })}
                     onToggleFlag={(id) => void handleToggleFlag(id)}
                     onDelete={(id) => void handleMoveToBin(id)}

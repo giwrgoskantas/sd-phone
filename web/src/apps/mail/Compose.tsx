@@ -275,6 +275,6 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
     );
 }
 
-function Divider({ inset = 16 }: { inset?: number }) {
+function Divider({ inset = 0 }: { inset?: number }) {
     return <div className="pointer-events-none bg-black/[0.12] dark:bg-white/10" style={{ marginLeft: inset, height: '0.5px' }} />;
 }

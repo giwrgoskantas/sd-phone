@@ -83,6 +83,15 @@ function store.insertPhoto(id, citizenid, url)
     return affected ~= nil
 end
 
+---Whether the player already has a photo with this exact URL (idempotent saves). Read-only.
+---@param citizenid string owner's framework per-character id
+---@param url string hosted media URL
+---@return boolean
+function store.hasUrl(citizenid, url)
+    return MySQL.scalar.await(
+        'SELECT 1 FROM phone_photos WHERE citizenid = ? AND url = ? LIMIT 1', { citizenid, url }) ~= nil
+end
+
 ---One player's photos, newest first. Read-only.
 ---@param citizenid string owner's framework per-character id
 ---@return { id: string, url: string, favorite: any, created_at: number }[] rows

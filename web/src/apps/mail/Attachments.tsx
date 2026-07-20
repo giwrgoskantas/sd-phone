@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { AudioLines, Paperclip, Pause, Play, StickyNote, X } from 'lucide-react';
+import { AudioLines, Check, Download, Paperclip, Pause, Play, StickyNote, X } from 'lucide-react';
 
 import { t } from '@/i18n';
 import { isFiveM } from '@/core/nui';
 import { useNuiQuery } from '@/hooks/useNuiQuery';
+import { AlertDialog } from '@/ui/AlertDialog';
 import { ImageLightbox } from '@/ui/ImageLightbox';
 import { Sheet } from '@/ui/Sheet';
-import { apiSavePhotoFromUrl, getCanImportPhotos } from '@/core/photosApi';
 import { fetchMemos, fmtDuration, fmtMemoDate, type VoiceMemo } from '@/apps/voicememos/voiceApi';
 import { loadState as loadNotes, noteTitle, notePreview, type Note, type NotesState } from '@/apps/notes/data';
-import type { MailAttachment } from './data';
+import { attachmentSaveStates, saveAttachment, type MailAttachment } from './data';
 
 export function AttachmentStrip({ attachments, max, onRemove }: {
     attachments: MailAttachment[];
@@ -351,7 +351,27 @@ function StripAudioRow({ att }: { att: Extract<MailAttachment, { kind: 'audio' }
     );
 }
 
-function AudioAttachmentCard({ att }: { att: Extract<MailAttachment, { kind: 'audio' }> }) {
+function SaveButton({ saved, onSave, label }: { saved: boolean; onSave: () => void; label: string }) {
+    return (
+        <button
+            type="button"
+            onClick={onSave}
+            disabled={saved}
+            aria-label={label}
+            className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-black/10 text-black/60 active:opacity-70 dark:bg-white/15 dark:text-white/70"
+        >
+            {saved
+                ? <Check className="h-[17px] w-[17px] text-ios-blue" strokeWidth={2.6} />
+                : <Download className="h-[17px] w-[17px]" strokeWidth={2.2} />}
+        </button>
+    );
+}
+
+function AudioAttachmentCard({ att, saved, onSave }: {
+    att:     Extract<MailAttachment, { kind: 'audio' }>;
+    saved:   boolean;
+    onSave?: () => void;
+}) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [playing,  setPlaying]  = useState(false);
     const [position, setPosition] = useState(0);
@@ -364,7 +384,7 @@ function AudioAttachmentCard({ att }: { att: Extract<MailAttachment, { kind: 'au
     }
 
     return (
-        <div className="flex items-center gap-3 rounded-[12px] bg-black/[0.05] px-3.5 py-3 dark:bg-white/[0.07]">
+        <div className="flex items-center gap-3 rounded-[12px] bg-[#e5e5e5] px-3.5 py-3 dark:bg-white/[0.07]">
             <audio
                 ref={audioRef}
                 src={att.url}
@@ -389,59 +409,115 @@ function AudioAttachmentCard({ att }: { att: Extract<MailAttachment, { kind: 'au
                     {playing || position > 0 ? `${fmtDuration(position)} / ` : ''}{fmtDuration(att.duration)}
                 </div>
             </div>
-            <AudioLines className="h-[20px] w-[20px] shrink-0 text-ios-gray" strokeWidth={2} />
+            {onSave && <SaveButton saved={saved} onSave={onSave} label={t('mail.saveToMemos', 'Save to Voice Memos')} />}
         </div>
     );
 }
 
-export function AttachmentsView({ attachments }: { attachments: MailAttachment[] }) {
-    const [viewer,   setViewer]   = useState<string | null>(null);
-    const [saved,    setSaved]    = useState(false);
+export function AttachmentsView({ attachments, accountEmail, messageId, canSave }: {
+    attachments:  MailAttachment[];
+    accountEmail: string;
+    messageId:    string;
+    canSave:      boolean;
+}) {
+    const [viewer,   setViewer]   = useState<{ url: string; i: number } | null>(null);
     const [openNote, setOpenNote] = useState<Extract<MailAttachment, { kind: 'note' }> | null>(null);
+    const [savedIdx, setSavedIdx] = useState<Set<number>>(new Set());
+    const [saveErr,  setSaveErr]  = useState<string | null>(null);
+    // Save buttons stay hidden until the server reports which attachments are already saved,
+    // so an already-saved item never flashes an actionable download button.
+    const [statesReady, setStatesReady] = useState(!canSave || !isFiveM);
 
-    const photos = attachments.filter(a => a.kind === 'photo');
-    const others = attachments.filter(a => a.kind !== 'photo');
+    useEffect(() => {
+        if (!canSave || !isFiveM) return;
+        let alive = true;
+        void attachmentSaveStates(accountEmail, messageId).then(states => {
+            if (!alive) return;
+            setSavedIdx(new Set(states.flatMap((s, i) => (s ? [i] : []))));
+            setStatesReady(true);
+        });
+        return () => { alive = false; };
+    }, [accountEmail, messageId, canSave]);
+
+    const showSave = canSave && statesReady;
+
+    // Original indices survive the photo/other split; the server resolves saves by index.
+    const indexed = attachments.map((a, i) => ({ a, i }));
+    const photos  = indexed.filter(({ a }) => a.kind === 'photo');
+    const others  = indexed.filter(({ a }) => a.kind !== 'photo');
+
+    async function saveOther(index: number) {
+        if (savedIdx.has(index)) return;
+        const r = await saveAttachment(accountEmail, messageId, index);
+        if (r.ok) setSavedIdx(prev => new Set(prev).add(index));
+        else setSaveErr(r.message ?? t('mail.saveAttachmentFailed', 'Could not save the attachment.'));
+    }
 
     return (
         <div className="flex flex-col gap-2.5">
             {photos.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
-                    {photos.map((p, i) => (
-                        <button key={i} type="button" onClick={() => { setViewer(p.url); setSaved(false); }} className="active:opacity-70">
-                            <img src={p.url} alt="" className="aspect-square w-full rounded-[10px] object-cover" />
+                    {photos.map(({ a, i }) => a.kind === 'photo' && (
+                        <button key={i} type="button" onClick={() => setViewer({ url: a.url, i })} className="active:opacity-70">
+                            <img src={a.url} alt="" className="aspect-square w-full rounded-[10px] object-cover" />
                         </button>
                     ))}
                 </div>
             )}
-            {others.map((a, i) => a.kind === 'audio'
-                ? <AudioAttachmentCard key={i} att={a} />
-                : (
-                    <button
+            {others.map(({ a, i }) => a.kind === 'audio'
+                ? (
+                    <AudioAttachmentCard
                         key={i}
-                        type="button"
-                        onClick={() => setOpenNote(a)}
-                        className="flex items-center gap-3 rounded-[12px] bg-black/[0.05] px-3.5 py-3 text-left active:bg-black/[0.09] dark:bg-white/[0.07] dark:active:bg-white/[0.11]"
+                        att={a}
+                        saved={savedIdx.has(i)}
+                        onSave={showSave ? () => void saveOther(i) : undefined}
+                    />
+                )
+                : a.kind === 'note' && (
+                    <div
+                        key={i}
+                        className="flex items-center gap-3 rounded-[12px] bg-[#e5e5e5] px-3.5 py-3 dark:bg-white/[0.07]"
                     >
-                        <StickyNote className="h-[22px] w-[22px] shrink-0 text-ios-orange" strokeWidth={2} />
-                        <div className="min-w-0 flex-1">
-                            <div className="truncate text-[15px] font-medium">{a.title || t('mail.note', 'Note')}</div>
-                            <div className="line-clamp-2 text-[13px] leading-snug text-ios-gray">{a.body}</div>
-                        </div>
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setOpenNote(a)}
+                            className="flex min-w-0 flex-1 items-center gap-3 text-left active:opacity-70"
+                        >
+                            <StickyNote className="h-[22px] w-[22px] shrink-0 text-ios-orange" strokeWidth={2} />
+                            <div className="min-w-0 flex-1">
+                                <div className="truncate text-[15px] font-medium">{a.title || t('mail.note', 'Note')}</div>
+                                <div className="line-clamp-2 text-[13px] leading-snug text-ios-gray">{a.body}</div>
+                            </div>
+                        </button>
+                        {showSave && (
+                            <SaveButton saved={savedIdx.has(i)} onSave={() => void saveOther(i)} label={t('mail.saveToNotes', 'Save to Notes')} />
+                        )}
+                    </div>
                 ))}
 
             {viewer && (
                 <ImageLightbox
-                    src={viewer}
+                    src={viewer.url}
                     onClose={() => setViewer(null)}
-                    action={getCanImportPhotos() ? {
-                        label: saved ? t('mail.savedToPhotos', 'Saved to Photos') : t('mail.saveToPhotos', 'Save to Photos'),
-                        onClick: () => { if (!saved) { void apiSavePhotoFromUrl(viewer); setSaved(true); } },
+                    action={showSave ? {
+                        label: savedIdx.has(viewer.i) ? t('mail.savedToPhotos', 'Saved to Photos') : t('mail.saveToPhotos', 'Save to Photos'),
+                        onClick: () => void saveOther(viewer.i),
                     } : undefined}
                 />
             )}
 
             {openNote && <NoteSheet title={openNote.title} body={openNote.body} onClose={() => setOpenNote(null)} />}
+
+            {saveErr && (
+                <AlertDialog
+                    title={t('mail.saveAttachmentFailedTitle', 'Could Not Save')}
+                    message={saveErr}
+                    confirmLabel={t('mail.ok', 'OK')}
+                    hideCancel
+                    onCancel={() => setSaveErr(null)}
+                    onConfirm={() => setSaveErr(null)}
+                />
+            )}
         </div>
     );
 }

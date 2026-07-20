@@ -87,4 +87,13 @@ function store.countFor(cid)
     return MySQL.scalar.await('SELECT COUNT(*) FROM `phone_notes` WHERE citizenid = ?', { cid }) or 0
 end
 
+---Whether the player already has a note with this exact body (idempotent saves). Read-only.
+---@param cid string owner citizenid
+---@param body string
+---@return boolean
+function store.hasBody(cid, body)
+    return MySQL.scalar.await(
+        'SELECT 1 FROM `phone_notes` WHERE citizenid = ? AND body = ? LIMIT 1', { cid, body }) ~= nil
+end
+
 return store
