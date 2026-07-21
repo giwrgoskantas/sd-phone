@@ -19,9 +19,15 @@ return {
     Enabled = false,
 
     -- Inventory item that carries a phone number in its metadata ({ number = '2075550123' }).
-    -- Create SIMs with the export or the /givesim admin command; add the item definition to
-    -- your inventory (see README - "Unique Phones & SIM Cards").
+    -- Sell or spawn it anywhere like a normal item: a blank card self-activates on first use.
+    -- Add the item definition to your inventory (see README - "Unique Phones & SIM Cards").
     SimItem = 'sim_card',
+
+    -- Using a blank sim_card (no number metadata - what shops, loot tables and admin spawns
+    -- produce) mints and registers a fresh number on the spot, so selling SIMs needs no script
+    -- integration at all. Turn off to refuse blank cards, so only /givesim and the giveSimCard
+    -- export (character-bound or hardcoded numbers) produce usable SIMs.
+    ActivateBlankSims = true,
 
     -- ox_inventory only: register every phone item as a 1-slot container ("SIM tray") instead
     -- of writing the number onto the phone item. Players right-click/use the phone to open the

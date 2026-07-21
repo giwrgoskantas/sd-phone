@@ -150,10 +150,12 @@ Off by default. Flip `Enabled = true` in `configs/simcards.lua` and phone number
    },
    ```
 
-2. Give players a phone item plus a SIM:
-   - `/givesim <playerId>` (admin) — a blank SIM with a fresh number.
+2. Get SIMs to players — **no integration needed**: sell or spawn `sim_card` like any normal item (ox_inventory shop, loot table, `/give`, anything). A blank card **activates itself on first use**, minting and registering a fresh number on the spot; once activated the number stays on that card through every eject and reinsert. (`ActivateBlankSims = false` turns this off if you want SIM distribution controlled.)
+
+   Optional paths for special cases:
+   - `/givesim <playerId>` (admin) — a pre-activated SIM with a fresh number.
    - `/givesim <playerId> bind` — a **character-bound** SIM: it carries the player's existing number and their existing phone data, so servers switching the feature on lose nothing.
-   - Or from another resource: `exports['sd-phone']:giveSimCard(source, { citizenid = cid })`.
+   - From another resource: `exports['sd-phone']:giveSimCard(source, { citizenid = cid })` for character-bound SIMs, or `{ number = '2085550123' }` to hardcode a specific number.
 3. Phones handed out **before** enabling the feature keep working as items, but in container mode they have no SIM tray until re-issued.
 
 ### Two attach modes

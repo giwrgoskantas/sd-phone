@@ -137,16 +137,28 @@ local function toast(source, description, kind)
 end
 
 -- Using a sim_card: metadata mode installs it into the first phone without service (consuming
--- the item); container mode just reads the number back (installation is dragging it into the
--- phone's SIM tray).
+-- the item); container mode reads the number back (installation is dragging it into the tray).
+-- A blank card (spawned raw by any shop or script) self-activates with a fresh minted number.
 inv.registerUsable(config.Sim.SimItem, function(source, itemArg, _invArg, slotArg)
     local slot, number = usedSim(source, itemArg, slotArg)
-    if not number then
+    local blank = number == nil
+    if blank and (config.Sim.ActivateBlankSims == false or not slot) then
         toast(source, 'This SIM card is blank.', 'error')
         return
     end
 
     if state.mode == 'container' then
+        if blank then
+            -- Swap the blank item for one stamped with the freshly registered number.
+            number = simStore.create({})
+            if not number or not siminv.takeSimItem(source, slot) or not siminv.giveSimItem(source, number) then
+                toast(source, 'Could not activate the SIM card.', 'error')
+                return
+            end
+            toast(source, ('SIM activated - your number is %s. Right-click a phone to open its SIM tray.')
+                :format(util.formatNumber(number)), 'success')
+            return
+        end
         toast(source, ('SIM number: %s. Right-click a phone to open its SIM tray.')
             :format(util.formatNumber(number)), 'inform')
         return
@@ -169,18 +181,29 @@ inv.registerUsable(config.Sim.SimItem, function(source, itemArg, _invArg, slotAr
         return
     end
 
+    -- Minted only after the phone checks above, so a failed use never orphans a number.
+    if blank then
+        number = simStore.create({})
+        if not number then
+            toast(source, 'Could not activate the SIM card.', 'error')
+            return
+        end
+    end
+
     if not siminv.takeSimItem(source, slot) then
         toast(source, 'Could not take the SIM card.', 'error')
         return
     end
     if not siminv.setPhoneSim(source, target.slot, number) then
+        -- The refund keeps the minted number: an activated SIM stays activated.
         siminv.giveSimItem(source, number)
         toast(source, 'Could not install the SIM card.', 'error')
         return
     end
 
     session.push(source)
-    toast(source, ('SIM installed - your number is %s.'):format(util.formatNumber(number)), 'success')
+    toast(source, (blank and 'SIM activated and installed - your number is %s.'
+        or 'SIM installed - your number is %s.'):format(util.formatNumber(number)), 'success')
 end)
 
 ---The player's SIM panel snapshot for Settings -> SIM & Backup. Drops the session cache first
