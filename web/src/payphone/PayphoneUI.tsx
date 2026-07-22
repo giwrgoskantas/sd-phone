@@ -320,6 +320,16 @@ export function PayphoneUI() {
         return () => window.removeEventListener('keydown', onKey, true);
     }, [open, close]);
 
+    // Above the early return: hooks must run on every render, open or not - `enabled`
+    // already keeps the listener off while the booth is closed or a call is running.
+    useKeypadInput({
+        onPress: press,
+        onDelete: delDigit,
+        canDelete: digits.length > 0,
+        enabled: open && phase === 'idle',
+        extraKeys: ['*', '#'],
+    });
+
     if (!open) return null;
 
     /** No unspent coin yet: the keypad is dead and the slot wants feeding. */
@@ -341,14 +351,6 @@ export function PayphoneUI() {
         if (phaseRef.current !== 'idle') return;
         setDigits(prev => prev.slice(0, -1));
     }
-
-    useKeypadInput({
-        onPress: press,
-        onDelete: delDigit,
-        canDelete: digits.length > 0,
-        enabled: open && phase === 'idle',
-        extraKeys: ['*', '#'],
-    });
 
     /** Feed the slot: charge server-side, then run the coin-drop and unlock. */
     async function insertCoin() {
