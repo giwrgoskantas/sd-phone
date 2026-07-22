@@ -28,6 +28,9 @@ interface SimInfo {
     mode: 'container' | 'metadata';
     builtin: boolean;
     hasSim: boolean;
+    /** Physical card in the active phone; hasSim = has service (character mode satisfies it
+     *  with an innate number, no card needed). */
+    simInstalled?: boolean;
     number?: string;
     color?: string;
     sims: SimListEntry[];
@@ -45,7 +48,7 @@ interface SimInfo {
 type Envelope<T> = { success: boolean; data?: T; message?: string };
 
 const DEV_INFO: SimInfo = {
-    mode: 'metadata', builtin: false, hasSim: true, number: '2075550149', color: 'yellow',
+    mode: 'metadata', builtin: false, hasSim: true, simInstalled: true, number: '2075550149', color: 'yellow',
     sims: [
         { number: '2075550149', color: 'yellow', active: true },
         { number: '3125550188', color: 'black', active: false },
@@ -192,7 +195,7 @@ export function SimBackupPage({ onBack }: { onBack: () => void }) {
                         label={t('settings.simStatus', 'SIM Status')}
                         value={info === null ? '…' : (info.builtin
                             ? t('settings.simBuiltin', 'Built-in')
-                            : info.hasSim ? t('settings.simInstalled', 'Installed') : t('settings.simNone', 'No SIM'))}
+                            : (info.simInstalled ?? info.hasSim) ? t('settings.simInstalled', 'Installed') : t('settings.simNone', 'No SIM'))}
                         divider
                     />
                     <ListRow label={t('settings.myNumber', 'My Number')} value={info?.hasSim ? number : '—'} divider={!!info?.ejectable} />

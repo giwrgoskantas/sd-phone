@@ -112,16 +112,23 @@ CreateThread(function()
     end
 
     state.builtin = config.Sim.BuiltInNumbers == true
-    -- Built-in numbers imply the phone owns everything: device identity is forced and the
-    -- attach mode is always metadata (there is no SIM item to drag into a tray).
+    -- Data owner: 'device' | 'sim' | 'character'. The legacy DeviceIdentity boolean still
+    -- resolves for configs written before DataOwner existed. Built-in numbers can't pair with
+    -- SIM-owned data (there is no SIM identity), so that combination coerces to device.
+    local owner = config.Sim.DataOwner
+    if owner ~= 'device' and owner ~= 'sim' and owner ~= 'character' then
+        owner = (config.Sim.DeviceIdentity ~= false) and 'device' or 'sim'
+    end
+    if state.builtin and owner == 'sim' then owner = 'device' end
+    state.device    = owner == 'device'
+    state.character = owner == 'character'
+    -- Attach mode is always metadata without SIM items (nothing to drag into a tray).
     state.mode   = (not state.builtin and config.Sim.UseContainers and siminv.isOx()) and 'container' or 'metadata'
-    state.device = state.builtin or config.Sim.DeviceIdentity ~= false
     state.active = true
     if state.mode == 'container' then siminv.registerContainers() end
     if siminv.isOx() then registerHooks() end
     print(('^2[sd-phone:sim]^0 unique phones active (%s mode, %s identity%s, %s backend)')
-        :format(state.mode, state.device and 'device' or 'sim',
-            state.builtin and ', built-in numbers' or '', siminv.backendName()))
+        :format(state.mode, owner, state.builtin and ', built-in numbers' or '', siminv.backendName()))
 end)
 
 ---Extracts the used item's slot + SIM number for both usable-item callback shapes (ox passes a
@@ -293,16 +300,20 @@ lib.callback.register('sd-phone:server:sim:get', function(source)
         if canUse then restorable = true end
     end
 
+    -- Physically installed SIM in the active phone; distinct from hasSim (= has service),
+    -- which character mode satisfies with an innate number even without a card.
+    local simInstalled = s ~= nil and s.active ~= nil and s.active.number ~= nil
     return util.ok({
         mode          = state.mode,
-        device        = state.device,
+        device        = state.device or state.character,
         builtin       = state.builtin,
         hasSim        = s ~= nil and s.hasSim or false,
+        simInstalled  = simInstalled,
         number        = s and s.number or nil,
         color         = s and s.color or nil,
         sims          = sims,
         ejectable     = state.mode == 'metadata' and config.Sim.AllowEject ~= false
-                        and not state.builtin and s ~= nil and s.hasSim or false,
+                        and not state.builtin and simInstalled or false,
         backupOn      = config.Sim.Backup and config.Sim.Backup.Enabled ~= false or false,
         -- A password only binds while profiles exist (no profiles = enabling may set a new one).
         hasPassword   = simStore.getBackupPassword(realCid) ~= nil
@@ -312,9 +323,10 @@ lib.callback.register('sd-phone:server:sim:get', function(source)
         syncedAt      = myProfile and myProfile.syncedAt or nil,
         profiles      = profiles,
         maxProfiles   = tonumber(config.Sim.Backup and config.Sim.Backup.MaxProfiles) or 3,
-        -- Device mode restores onto the DEVICE identity (no SIM required); legacy needs the SIM.
+        -- Device/character mode restore onto the acting identity (no SIM required); legacy
+        -- needs the installed SIM.
         canRestore    = restorable and s ~= nil and s.identity ~= nil
-                        and (state.device or s.hasSim) or false,
+                        and (state.device or state.character or s.hasSim) or false,
     })
 end)
 
@@ -326,16 +338,19 @@ lib.callback.register('sd-phone:server:sim:eject', function(source)
         return util.fail('Take the SIM out of the phone\'s SIM tray instead.')
     end
     local s = session.resolve(source)
-    if not s or not s.hasSim or not s.number or not s.slot then
+    -- The ACTIVE ENTRY's number is the physically installed SIM; the session-level number can
+    -- be a character-mode innate number that no card carries.
+    local simNumber = s and s.active and s.active.number or nil
+    if not s or not simNumber or not s.active.slot then
         return util.fail('No SIM card is installed.')
     end
     if not inv.canCarry(source, config.Sim.SimItem, 1) then
         return util.fail('You have no room for the SIM card.')
     end
-    if not siminv.setPhoneSim(source, s.slot, nil) then
+    if not siminv.setPhoneSim(source, s.active.slot, nil) then
         return util.fail('Could not eject the SIM card.')
     end
-    siminv.giveSimItem(source, s.number)
+    siminv.giveSimItem(source, simNumber)
     session.push(source)
     return util.ok()
 end)

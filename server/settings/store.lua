@@ -411,7 +411,10 @@ function store.ensurePhoneNumber(citizenid)
     local existing = store.getPhoneNumber(citizenid)
     if existing then return existing end
 
-    if require('server.sim.state').active then return nil end
+    -- Under unique phones, numbers come from SIMs/devices and are never minted here - EXCEPT
+    -- in character-data mode, which keeps the stock auto-assign as the SIM-less fallback.
+    local sim = require 'server.sim.state'
+    if sim.active and not sim.character then return nil end
 
     local number
     for _ = 1, 20 do

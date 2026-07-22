@@ -1,21 +1,25 @@
--- Unique phones (opt-in). When enabled, every phone item is a distinct device and characters
--- no longer auto-receive a phone number. Numbers come from sim_card items - or, with
--- BuiltInNumbers, from the phone itself (no SIM items at all). How the DATA is owned depends
--- on DeviceIdentity below.
+-- Unique phones (opt-in). When enabled, numbers come from sim_card items - or, with
+-- BuiltInNumbers, from the phone itself (no SIM items at all). Who owns the DATA is DataOwner:
 --
---   * DeviceIdentity = true  (DEFAULT) - the PHONE owns the data, the SIM only lends a number.
+--   * DataOwner = 'device' (DEFAULT) - the PHONE owns the data, the SIM only lends a number.
 --     Each phone item carries a persistent identity minted on first use, and that identity keys
 --     everything (messages, contacts, photos, notes, settings, installed apps, games). Popping
 --     a SIM out just drops your number/service: the phone still opens and every non-number app
 --     keeps working. Moving a SIM to another phone hands that phone your NUMBER, not your data.
 --
---   * DeviceIdentity = false (LEGACY) - the SIM owns the data. Whichever SIM sits in a phone
+--   * DataOwner = 'sim' (LEGACY) - the SIM owns the data. Whichever SIM sits in a phone
 --     decides WHOSE phone data you see; steal a phone with its SIM and you read the owner's
 --     phone. Without a SIM the phone opens to a "No SIM" screen with no service and every
 --     server action refused. This is the original unique-phones behaviour, byte-for-byte.
 --
--- Either way the number follows the SIM, and the Cloud Backup section in Settings lets a player
--- carry their data to a new phone (the number stays behind on the old SIM).
+--   * DataOwner = 'character' - the STOCK data model with SIM numbers on top. Every phone
+--     opens the holder's own character profile (a stolen phone shows the thief's data, never
+--     the owner's), and without a SIM the character keeps a vanilla auto-assigned number with
+--     full service. Installing a SIM changes ONLY the number; ejecting falls back to a fresh
+--     auto number. Enabling this on an existing stock server keeps everyone's data untouched.
+--
+-- With 'device'/'sim' the number follows the SIM, and the Cloud Backup section in Settings
+-- lets a player carry their data to a new phone (the number stays behind on the old SIM).
 --
 -- Backend support: reading/writing per-slot item metadata is required. Supported out of the box:
 --   * ox_inventory              (metadata mode, or the physical SIM-tray container mode below)
@@ -27,17 +31,17 @@ return {
     -- character, phone always has service).
     Enabled = false,
 
-    -- Where the phone DATA lives (see the header above). true (default) = the phone item owns
-    -- its data and a SIM only supplies the number, so a SIM-less phone still opens and works.
-    -- false = LEGACY behaviour where the installed SIM's identity IS the data, and a SIM-less
-    -- phone is a dead "No SIM" screen. Flipping an existing legacy server to true is safe: on
-    -- first use each phone ADOPTS the identity of the SIM currently in it (grandfathering, so no
-    -- data is copied or lost), and only from then on does the number float free of the data.
-    DeviceIdentity = true,
+    -- Where the phone DATA lives: 'device' | 'sim' | 'character' (see the header above).
+    -- Flipping an existing 'sim' server to 'device' is safe: on first use each phone ADOPTS the
+    -- identity of the SIM currently in it (grandfathering, no data copied or lost), and only
+    -- from then on does the number float free of the data. (The pre-DataOwner boolean
+    -- `DeviceIdentity` is still honoured when this key is absent.)
+    DataOwner = 'device',
 
     -- Unique phones WITHOUT SIM cards ("eSIM"): every phone mints its own permanent number the
     -- first time it is used - no sim_card item, no install/eject, the number lives and dies
-    -- with the phone. Forces DeviceIdentity behaviour and the metadata attach mode; SimItem,
+    -- with the phone. Pairs with DataOwner 'device' or 'character' ('sim' has no SIM identity
+    -- to own data and coerces to 'device'); forces the metadata attach mode. SimItem,
     -- UseContainers, AllowEject, ActivateBlankSims and /givesim become inert.
     BuiltInNumbers = false,
 

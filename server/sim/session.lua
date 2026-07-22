@@ -237,12 +237,77 @@ local function computeDevice(source, phones)
     }
 end
 
+---CHARACTER (stock-data) resolver. Every phone acts as the holder's own character profile -
+---the stock data model - and a SIM only changes the NUMBER. Without a SIM the character keeps
+---an innate auto-assigned number (vanilla behaviour); the ACTIVE phone's SIM overrides it, and
+---ejecting falls back to a fresh innate number. Entry `number`/`hasSim` reflect REAL installed
+---SIMs only; the session-level number is whatever is currently live for the character.
+---@param source number player server id
+---@param phones { slot: number, name: string, color: string, metadata: table }[]
+---@return SimSession|nil
+local function computeCharacter(source, phones)
+    local realCid = realIdentifier(source)
+    if not realCid then return nil end
+    local entries = {}
+    for _, phone in ipairs(phones) do
+        local number = siminv.getSimNumber(source, phone)
+        if not number and state.builtin then
+            -- Built-in numbers pair with character data too: the phone still mints its own
+            -- permanent number on first use; only the DATA stays the character's.
+            local minted = simStore.create({})
+            if minted and siminv.setPhoneSim(source, phone.slot, minted) then number = minted end
+        end
+        if number then simStore.ensureRegistered(number, realCid) end
+        entries[#entries + 1] = {
+            slot     = phone.slot,
+            name     = phone.name,
+            color    = phone.color,
+            number   = number,
+            identity = realCid,
+            hasSim   = number ~= nil,
+            owner    = realCid,
+        }
+    end
+
+    local active = pickActive(source, entries)
+    -- One data profile = one live number. The active phone's SIM is it; with no SIM installed
+    -- the character falls back to an innate stock number (a SIM-lent leftover in the mirror is
+    -- cleared first so ensurePhoneNumber mints a fresh innate one).
+    local liveNumber = active and active.number or nil
+    if liveNumber then
+        if settingsStore.getPhoneNumber(realCid) ~= liveNumber then
+            settingsStore.setPhoneNumber(realCid, liveNumber)
+            TriggerEvent('sd-phone:server:sim:numberAttached', source, realCid, liveNumber)
+        end
+    else
+        local mirror = settingsStore.getPhoneNumber(realCid)
+        if mirror and mirror ~= '' and simStore.get(mirror) then
+            settingsStore.clearPhoneNumber(realCid)
+        end
+        liveNumber = settingsStore.ensurePhoneNumber(realCid)
+    end
+
+    return {
+        hasPhone = true,
+        -- Service tracks the live number, not SIM presence: a SIM-less phone still works in
+        -- this mode, exactly like stock.
+        hasSim   = liveNumber ~= nil,
+        sims     = entries,
+        active   = active,
+        identity = realCid,
+        number   = liveNumber,
+        color    = active and active.color or phones[1].color,
+        slot     = active and active.slot or phones[1].slot,
+    }
+end
+
 ---Scans the player's inventory and resolves their SIM/device session for the active mode.
 ---@param source number player server id
 ---@return SimSession|nil s nil when the player carries no phone item
 local function compute(source)
     local phones = siminv.findPhones(source)
     if #phones == 0 then return nil end
+    if state.character then return computeCharacter(source, phones) end
     if state.device then return computeDevice(source, phones) end
     return computeLegacy(source, phones)
 end
@@ -300,6 +365,9 @@ function session.isOwner(source)
     if not state.active then return true end
     local s = session.resolve(source)
     if not s then return false end
+    -- Character mode: the acting data is always the holder's own, so any phone they hold is
+    -- "theirs" (a stolen phone shows the thief's data, protected by the thief's own security).
+    if state.character then return true end
     if state.device then
         return s.active ~= nil and s.active.owner ~= nil and s.active.owner == realIdentifier(source)
     end
@@ -316,15 +384,18 @@ function session.push(source)
     if not state.active then return end
     session.invalidate(source)
     local s = session.resolve(source)
+    -- Character mode behaves like device mode for the NUI: no No-SIM wall, and the profile
+    -- namespace keys off the acting identity (the character - same on every phone).
+    local deviceLike = state.device or state.character
     TriggerClientEvent('sd-phone:client:simState', source, {
         enabled = true,
-        device  = state.device,
+        device  = deviceLike,
         hasSim  = s ~= nil and s.hasSim or false,
         number  = s and s.number or nil,
         color   = s and s.color or nil,
-        -- Device mode: the setup/profile localStorage namespace keys off the DEVICE identity (so
-        -- swapping SIMs on one phone never resets it); legacy keys off the number, client-side.
-        profile = state.device and s and s.identity or nil,
+        -- Device/character mode: the setup/profile localStorage namespace keys off the acting
+        -- identity (stable across SIM swaps); legacy keys off the number, client-side.
+        profile = deviceLike and s and s.identity or nil,
     })
 end
 

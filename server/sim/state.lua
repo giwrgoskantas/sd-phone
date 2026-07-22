@@ -13,6 +13,10 @@ return {
     device = false,
     ---@type boolean True in built-in-numbers mode (config.Sim.BuiltInNumbers): unique phones
     ---WITHOUT SIM items - every phone mints its own permanent number on first use ("eSIM").
-    ---Implies `device`; SIM install/eject does not exist. Only meaningful while `active`.
+    ---SIM install/eject does not exist. Only meaningful while `active`.
     builtin = false,
+    ---@type boolean True in CHARACTER-data mode (config.Sim.DataOwner = 'character'): the stock
+    ---data model - every phone opens the holder's own character profile - with SIMs only
+    ---changing the NUMBER. Mutually exclusive with `device`. Only meaningful while `active`.
+    character = false,
 }
