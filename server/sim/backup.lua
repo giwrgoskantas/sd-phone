@@ -35,11 +35,18 @@ local function describe(tbl)
     return cols, autoinc, pk
 end
 
+---@type table<string, string[]> Self/cross-referencing FK columns pointing at a remapped
+---single-column `id` PK; each gets the same MD5 transform so parents stay linked after a copy.
+local FK_REMAP = {
+    phone_documents        = { 'folder_id' },
+    phone_document_folders = { 'parent_id' },
+}
+
 ---Copies every row of `tbl` owned by `fromId` to `toId` in a single INSERT IGNORE ... SELECT.
 ---Globally-unique random-id PKs are remapped deterministically (MD5 of old id + new identity,
 ---truncated to the column's 16-char shape) so a second restore is an idempotent no-op instead
----of a duplicate; PKs that include the identity column need no remap. Cross-copy references
----like phone_messages.mid are left untouched on purpose - reactions keep linking.
+---of a duplicate; PKs that include the identity column need no remap. FK columns in FK_REMAP get
+---the same transform so folder/parent links survive; cross-copy refs like phone_messages.mid don't.
 ---@param tbl string table name
 ---@param cidCol string identity column
 ---@param fromId string source identity
@@ -51,6 +58,9 @@ local function copyTable(tbl, cidCol, fromId, toId)
 
     -- Remap `id` only when it is the sole primary key (identity-composite PKs copy verbatim).
     local remapId = pk.id and not pk[cidCol]
+    local fkSet = {}
+    for _, col in ipairs(FK_REMAP[tbl] or {}) do fkSet[col] = true end
+
     local names, exprs, params = {}, {}, {}
     for _, col in ipairs(cols) do
         if not autoinc[col] then
@@ -60,6 +70,11 @@ local function copyTable(tbl, cidCol, fromId, toId)
                 params[#params + 1] = toId
             elseif col == 'id' and remapId then
                 exprs[#exprs + 1] = ('SUBSTRING(MD5(CONCAT(`%s`, ?)), 1, 16)'):format(col)
+                params[#params + 1] = toId
+            elseif fkSet[col] then
+                exprs[#exprs + 1] =
+                    ('CASE WHEN `%s` IS NULL THEN NULL ELSE SUBSTRING(MD5(CONCAT(`%s`, ?)), 1, 16) END')
+                        :format(col, col)
                 params[#params + 1] = toId
             else
                 exprs[#exprs + 1] = ('`%s`'):format(col)
@@ -102,6 +117,8 @@ local COPY = {
     { 'phone_service_prefs',     'citizenid' },
     { 'phone_bank_transactions', 'citizenid' },
     { 'phone_app_sessions',      'citizenid' },
+    { 'phone_documents',         'citizenid' },
+    { 'phone_document_folders',  'citizenid' },
 }
 
 ---@type string[] phone_settings columns carried by a restore. The number, citizenid and

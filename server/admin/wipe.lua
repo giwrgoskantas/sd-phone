@@ -37,6 +37,8 @@ local CID_SINGLE = {
     { 'marketplace_listings',        'citizenid' },
     { 'pages_posts',                 'citizenid' },
     { 'phone_passwords',             'citizenid' },
+    { 'phone_documents',             'citizenid' },
+    { 'phone_document_folders',      'citizenid' },
     { 'phone_messages',              'citizenid' },
     { 'phone_message_reactions',     'citizenid' },
     { 'phone_message_group_members', 'citizenid' },

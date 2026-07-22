@@ -1,5 +1,6 @@
 
 import type { BirdyMessage } from '@/apps/birdy/data';
+import type { DocFile } from '@/apps/documents/data';
 import type { DMsg as PhotogramDM, User as PhotogramUser } from '@/apps/photogram/data';
 import type { VUser as VibezUser } from '@/apps/vibez/data';
 import type { Reaction } from '@/shared/chat/data';
@@ -261,6 +262,8 @@ export type NuiMessage =
     | { action: 'sd-phone:video:signal';   data: { kind: 'offer' | 'answer' | 'ice'; sdp?: string; candidate?: unknown } }
     | { action: 'sd-phone:voice:added';        data: { id: string; name: string; url: string; duration: number; date: string } }
     | { action: 'sd-phone:notes:added';        data: { id: string; body: string; sketches: string[]; images: string[]; createdAt: string; updatedAt: string } }
+    | { action: 'sd-phone:documents:added';    data: { doc: DocFile } }
+    | { action: 'sd-phone:documents:receive';  data: { doc: DocFile; fromName?: string } }
     | { action: 'sd-phone:voice:uploadFailed'; data: { message?: string } }
     | { action: 'sd-phone:contacts:shared';    data: { id: string; name: string; phone: string; color: string; initials: string; avatar?: string } }
     | { action: 'sd-phone:contacts:removed';   data: { phone: string } }

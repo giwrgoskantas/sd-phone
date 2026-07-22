@@ -65,31 +65,45 @@ export function ListGroup({ children, header, footer }: {
     );
 }
 
-export function ListRow({ label, value, chevron, divider, destructive, selected, left, right, onPress }: {
+export function ListRow({ label, sub, value, chevron, divider, destructive, selected, large, left, right, onPress }: {
     label:        string;
+    /** Optional second line under the label (ios-gray) - file rows, previews, etc. */
+    sub?:         string;
     value?:       string;
     chevron?:     boolean;
     divider?:     boolean;
     destructive?: boolean;
     selected?:    boolean;
+    /** Roomier variant: taller row, 18px label, 14px sub - list-browsing apps (Files). */
+    large?:       boolean;
     left?:        ReactNode;
     right?:       ReactNode;
     onPress?:     () => void;
 }) {
     const isPicker    = selected !== undefined;
     const showChevron = !isPicker && (chevron !== undefined ? chevron : value === undefined);
+    const labelColor  = destructive ? 'text-ios-red' : 'text-black dark:text-white';
+    const labelSize   = large ? 'text-[18px]' : 'text-[17px]';
+    const subSize     = large ? 'text-[14px]' : 'text-[13px]';
     return (
         <button
             type="button"
             onClick={onPress}
-            className="relative flex w-full items-center px-4 py-3 text-left active:bg-black/5 dark:active:bg-white/5"
+            className={`relative flex w-full items-center px-4 text-left active:bg-black/5 dark:active:bg-white/5 ${large ? 'py-3.5' : 'py-3'}`}
         >
             {left !== undefined && (
                 <span className="mr-3 flex shrink-0 items-center">{left}</span>
             )}
-            <span className={`flex-1 text-[17px] font-normal ${destructive ? 'text-ios-red' : 'text-black dark:text-white'}`}>
-                {label}
-            </span>
+            {sub !== undefined ? (
+                <span className="min-w-0 flex-1">
+                    <span className={`block truncate ${labelSize} font-normal ${labelColor}`}>{label}</span>
+                    <span className={`block truncate ${subSize} text-ios-gray`}>{sub}</span>
+                </span>
+            ) : (
+                <span className={`flex-1 ${labelSize} font-normal ${labelColor}`}>
+                    {label}
+                </span>
+            )}
             {value && (
                 <span className="mr-1 shrink-0 text-[17px] font-normal text-ios-gray">{value}</span>
             )}

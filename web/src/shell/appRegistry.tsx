@@ -43,6 +43,7 @@ const APP_REGISTRY = {
     stocks:      entry(() => import('@/apps/stocks/Stocks').then(m => ({ default: m.Stocks }))),
     ryde:        entry(() => import('@/apps/ryde/Ryde').then(m => ({ default: m.Ryde }))),
     notes:       entry(() => import('@/apps/notes/Notes').then(m => ({ default: m.Notes }))),
+    documents:   entry(() => import('@/apps/documents/Documents').then(m => ({ default: m.Documents }))),
     voicememos:  entry(() => import('@/apps/voicememos/VoiceMemos').then(m => ({ default: m.VoiceMemos }))),
     health:      entry(() => import('@/apps/health/Health').then(m => ({ default: m.Health }))),
     compass:     entry(() => import('@/apps/compass/Compass').then(m => ({ default: m.Compass }))),

@@ -41,6 +41,7 @@ local function kindLabel(kind)
     if kind == 'pin'   then return 'map pin' end
     if kind == 'music-track'    then return 'song' end
     if kind == 'music-playlist' then return 'playlist' end
+    if kind == 'document' then return 'document' end
     return 'contact'
 end
 

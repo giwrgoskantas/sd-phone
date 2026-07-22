@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { t } from '@/i18n';
+import { portalToPhoneScreen } from './portal';
 
 interface ActionSheetButton {
     label:        string;
@@ -27,7 +28,9 @@ export function ActionSheet({ actions, cancelLabel, forceDark = false, onClose }
 
     const rowBorder = 'border-t border-black/[0.10] dark:border-white/[0.12]';
 
-    return (
+    // Portaled to the phone screen (like Sheet) so the sheet always rises from the very
+    // bottom and covers tab bars, no matter how deeply the opener is nested.
+    return portalToPhoneScreen(
         <div className={`absolute inset-0 z-50 ${forceDark ? 'dark' : ''}`} onClick={() => close()}>
             <div
                 className="absolute inset-0 bg-black/40"
@@ -80,6 +83,6 @@ export function ActionSheet({ actions, cancelLabel, forceDark = false, onClose }
                     </button>
                 )}
             </div>
-        </div>
+        </div>,
     );
 }

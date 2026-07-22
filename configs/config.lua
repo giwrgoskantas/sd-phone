@@ -36,6 +36,7 @@ local config = {
     VoiceMemos  = require 'configs.voicememos',     -- voice notes + Fivemanage
     Share       = require 'configs.share',          -- nearby share sheet
     Notes       = require 'configs.notes',         -- per-character notes
+    Documents   = require 'configs.documents',     -- Files: per-character documents + folders
     Housing     = require 'configs.housing',       -- property list (multi-system)
     Cookie      = require 'configs.cookie',        -- clicker mini-game + leaderboard
     Stocks      = require 'configs.stocks',         -- stock + crypto market, brokerage wallet
