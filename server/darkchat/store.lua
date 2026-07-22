@@ -5,6 +5,9 @@
 ---use 'p-<code>'.
 local store = {}
 
+local util = require 'server.util'
+local isTruthy = util.truthy
+
 ---Create the Dark Chat tables if they don't exist and back-fill newer columns, so the resource is
 ---drop-in. `kind` tags a message's type and `meta` holds a JSON blob of its extra fields (media
 ---URL, audio + duration, waypoint, reply quote); rows from before those columns exist default to
@@ -30,6 +33,10 @@ function store.ensureSchema()
             PRIMARY KEY (`room_id`, `citizenid`),
             KEY `citizenid` (`citizenid`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ]])
+    MySQL.query.await([[
+        ALTER TABLE `darkchat_members`
+            ADD COLUMN IF NOT EXISTS `notifications` TINYINT(1) NOT NULL DEFAULT 0
     ]])
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `darkchat_messages` (
@@ -64,6 +71,18 @@ function store.ensureSchema()
             PRIMARY KEY (`citizenid`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ]])
+    MySQL.query.await([[
+        CREATE TABLE IF NOT EXISTS `darkchat_bans` (
+            `room_id`   VARCHAR(40) NOT NULL,
+            `citizenid` VARCHAR(60) NOT NULL,
+            `banned_at` BIGINT      NOT NULL,
+            PRIMARY KEY (`room_id`, `citizenid`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ]])
+    MySQL.query.await([[
+        ALTER TABLE `darkchat_rooms`
+            ADD COLUMN IF NOT EXISTS `code_changed_at` BIGINT NULL
+    ]])
 end
 
 ---Insert a private room row. Caller guarantees the code (and therefore the 'p-<code>' id) is
@@ -84,6 +103,15 @@ end
 ---@return table|nil row darkchat_rooms row
 function store.roomByCode(code)
     return MySQL.single.await('SELECT * FROM `darkchat_rooms` WHERE code = ?', { code })
+end
+
+---The full room row for a room id, or nil. The row includes the owner citizenid (the room's
+---creator) - callers must never forward it to a client; it gates the kick permission check.
+---Read-only.
+---@param roomId string room id
+---@return table|nil row darkchat_rooms row
+function store.roomById(roomId)
+    return MySQL.single.await('SELECT * FROM `darkchat_rooms` WHERE id = ?', { roomId })
 end
 
 ---Every private room `cid` is a member of, newest joins first. Rows include the owner citizenid -
@@ -122,6 +150,54 @@ end
 ---@return boolean member
 function store.isMember(roomId, cid)
     return MySQL.scalar.await('SELECT 1 FROM `darkchat_members` WHERE room_id = ? AND citizenid = ? LIMIT 1', { roomId, cid }) ~= nil
+end
+
+---Whether `cid` has per-room message notifications switched on for `roomId`; false when they
+---hold no membership row. Read-only.
+---@param roomId string room id
+---@param cid string citizenid
+---@return boolean enabled
+function store.getNotifications(roomId, cid)
+    return isTruthy(MySQL.scalar.await('SELECT notifications FROM `darkchat_members` WHERE room_id = ? AND citizenid = ?', { roomId, cid }))
+end
+
+---Set `cid`'s per-room notification flag on `roomId`. Scoped to the caller's own membership row.
+---@param roomId string room id
+---@param cid string citizenid
+---@param enabled boolean
+function store.setNotifications(roomId, cid, enabled)
+    MySQL.query.await('UPDATE `darkchat_members` SET notifications = ? WHERE room_id = ? AND citizenid = ?',
+        { enabled and 1 or 0, roomId, cid })
+end
+
+---The citizenids of every member of `roomId` who has notifications enabled, except `exceptCid`
+---(the sender). Feeds the incoming-message notification fan-out. Read-only.
+---@param roomId string room id
+---@param exceptCid string citizenid to skip (message author)
+---@return string[] citizenids
+function store.notifyMembersFor(roomId, exceptCid)
+    local rows = MySQL.query.await(
+        'SELECT citizenid FROM `darkchat_members` WHERE room_id = ? AND notifications = 1 AND citizenid <> ?',
+        { roomId, exceptCid }) or {}
+    local out = {}
+    for _, r in ipairs(rows) do out[#out + 1] = r.citizenid end
+    return out
+end
+
+---Every member of `roomId` with their saved Dark Chat nickname (NULL when they never picked
+---one), oldest join first. Reactor/owner anonymity does not apply here - the list is only ever
+---built for the room's creator and citizenids stay server-side (the caller maps them to opaque
+---tokens). Read-only.
+---@param roomId string room id
+---@return table[] rows { citizenid, nickname } rows
+function store.membersWithNames(roomId)
+    return MySQL.query.await([[
+        SELECT m.citizenid AS citizenid, n.nickname AS nickname
+        FROM `darkchat_members` m
+        LEFT JOIN `darkchat_nicknames` n ON n.citizenid = m.citizenid
+        WHERE m.room_id = ?
+        ORDER BY m.joined_at ASC
+    ]], { roomId }) or {}
 end
 
 ---How many players are members of a room. Read-only.
@@ -199,9 +275,6 @@ function store.toggleReaction(messageId, cid, emoji, ts)
     return true
 end
 
-local util = require 'server.util'
-local isTruthy = util.truthy
-
 ---A message's reactions from `cid`'s viewpoint: one entry per emoji with a count (players who used
 ---it) and `mine` (did `cid` react with it), ordered by when each emoji first appeared. Reactor
 ---citizenids stay inside the query - only the aggregate count and the viewer's own boolean leave
@@ -247,6 +320,56 @@ function store.reactionsForRoom(roomId, cid)
         out[key][#out[key] + 1] = { emoji = r.emoji, count = tonumber(r.cnt) or 1, mine = isTruthy(r.mine) }
     end
     return out
+end
+
+---Re-points a room at a fresh join code, stamping when it changed (the regen cooldown reads
+---it). The room ID stays what it was - only joining resolves through the code column, so
+---nothing keyed by room id moves. Caller guarantees the new code is unique.
+---@param roomId string room id
+---@param code string new join code
+---@param ts integer unix seconds
+function store.updateRoomCode(roomId, code, ts)
+    MySQL.query.await('UPDATE `darkchat_rooms` SET code = ?, code_changed_at = ? WHERE id = ?',
+        { code, ts, roomId })
+end
+
+---Ban a player from a room. INSERT IGNORE, so re-banning changes nothing.
+---@param roomId string room id
+---@param cid string citizenid
+---@param ts integer unix seconds
+function store.addBan(roomId, cid, ts)
+    MySQL.query.await('INSERT IGNORE INTO `darkchat_bans` (room_id, citizenid, banned_at) VALUES (?, ?, ?)',
+        { roomId, cid, ts })
+end
+
+---Lift one player's ban. Scoped to (room, citizenid). Idempotent.
+---@param roomId string room id
+---@param cid string citizenid
+function store.removeBan(roomId, cid)
+    MySQL.query.await('DELETE FROM `darkchat_bans` WHERE room_id = ? AND citizenid = ?', { roomId, cid })
+end
+
+---Whether `cid` is banned from `roomId`. Read-only.
+---@param roomId string room id
+---@param cid string citizenid
+---@return boolean banned
+function store.isBanned(roomId, cid)
+    return MySQL.scalar.await('SELECT 1 FROM `darkchat_bans` WHERE room_id = ? AND citizenid = ? LIMIT 1', { roomId, cid }) ~= nil
+end
+
+---Every banned player of `roomId` with their saved nickname (NULL when they never picked one),
+---oldest ban first. Same anonymity posture as membersWithNames: only ever built for the room's
+---creator, citizenids stay server-side. Read-only.
+---@param roomId string room id
+---@return table[] rows { citizenid, nickname } rows
+function store.bansWithNames(roomId)
+    return MySQL.query.await([[
+        SELECT b.citizenid AS citizenid, n.nickname AS nickname
+        FROM `darkchat_bans` b
+        LEFT JOIN `darkchat_nicknames` n ON n.citizenid = b.citizenid
+        WHERE b.room_id = ?
+        ORDER BY b.banned_at ASC
+    ]], { roomId }) or {}
 end
 
 ---A character's saved nickname, or nil if they never picked one. Read-only.

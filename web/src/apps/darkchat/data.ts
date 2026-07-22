@@ -64,6 +64,22 @@ export interface Room {
     messages:  ChatMessage[];
 }
 
+export interface RoomMember {
+    id:       string;
+    name:     string;
+    creator?: boolean;
+}
+
+export interface RoomInfo {
+    notifications: boolean;
+    isCreator:     boolean;
+    code?:         string;
+    members?:      RoomMember[];
+    bans?:         RoomMember[];
+    /** Creator only: seconds left before the join code may be regenerated again. */
+    codeCooldown?: number;
+}
+
 export const PUBLIC_ROOMS: Room[] = [
     {
         id: 'r-general', name: 'City General', topic: 'Anything goes — keep it civil.', members: 42, isPrivate: false,

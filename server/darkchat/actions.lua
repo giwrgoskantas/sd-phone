@@ -84,6 +84,58 @@ end
 ---@return boolean public - is this a config public room?
 function actions.isPublic(roomId) return PUBLIC_BY_ID[roomId] ~= nil end
 
+---A stable, one-way token identifying a member within a room, so the creator's member list can
+---name a kick target without ever exposing a citizenid to the client (Dark Chat is anonymous).
+---Two FNV-1a passes give a 64-bit hex handle; the token is deterministic, so the same member
+---always maps to the same value and resolveMemberToken can recompute it to find the row.
+---@param roomId string room id
+---@param cid string member citizenid
+---@return string token 16-char hex handle
+local function memberToken(roomId, cid)
+    local s = roomId .. '\30' .. cid
+    local h1, h2 = 2166136261, 2166136261
+    for i = 1, #s do
+        local b = s:byte(i)
+        h1 = ((h1 ~ b) * 16777619) & 0xffffffff
+        h2 = ((h2 ~ (b + i)) * 16777619) & 0xffffffff
+    end
+    return ('%08x%08x'):format(h1, h2)
+end
+
+---The member citizenid a client-supplied kick token refers to within `roomId`, or nil. Recomputes
+---each member's token and returns the unique match; nil when nothing (or, defensively, more than
+---one thing) matches, so a hash collision can never kick the wrong person.
+---@param roomId string room id
+---@param token any client-supplied member token
+---@return string|nil citizenid
+local function resolveMemberToken(roomId, token)
+    if type(token) ~= 'string' or token == '' then return nil end
+    local found
+    for _, m in ipairs(store.membersWithNames(roomId)) do
+        if memberToken(roomId, m.citizenid) == token then
+            if found then return nil end
+            found = m.citizenid
+        end
+    end
+    return found
+end
+
+---A one-line preview of a message for a notification banner: the author's nickname, then a
+---kind-appropriate summary. Mirrors the Messages app's server-side previews (plain, emoji-tagged
+---strings the banner shows verbatim).
+---@param message table client-shaped message from actions.send
+---@return string preview
+local function previewLine(message)
+    local kind = message.kind or 'text'
+    local body
+    if kind == 'image'    then body = '📷 Photo'
+    elseif kind == 'gif'      then body = 'GIF'
+    elseif kind == 'voice'    then body = '🎤 Voice message'
+    elseif kind == 'location' then body = '📍 Location'
+    else body = message.body or '' end
+    return ('%s: %s'):format(message.author or '', body)
+end
+
 ---A room's recent history shaped for the client: each stored meta blob is flattened onto its
 ---message, and each message carries its reaction set from `cid`'s viewpoint.
 ---@param roomId string room id
@@ -283,6 +335,7 @@ function actions.join(src, code)
 
     local row = store.roomByCode(code)
     if not row then return { success = false, message = 'No room with that code' } end
+    if store.isBanned(row.id, cid) then return { success = false, message = 'You are banned from this room' } end
 
     if not store.isMember(row.id, cid) and store.privateCountFor(cid) >= DC.MaxPrivateRoomsPerPlayer then
         return { success = false, message = 'You have too many rooms' }
@@ -321,6 +374,220 @@ function actions.setNickname(src, nick)
     if #nick > DC.MaxNicknameLength then nick = nick:sub(1, DC.MaxNicknameLength) end
     store.setNickname(cid, nick)
     return { success = true, data = { nickname = nick } }
+end
+
+---@return integer seconds the caller must still wait before regenerating a room's code
+local function codeCooldownLeft(room)
+    local cooldown = tonumber(DC.CodeRegenCooldownSeconds) or 300
+    local left = (tonumber(room.code_changed_at) or 0) + cooldown - os.time()
+    return left > 0 and left or 0
+end
+
+---The settings surface for one private room: the caller's own notification flag, whether they
+---created the room, the join code, and - creator only - the member and ban lists (opaque
+---tokens + display names, never citizenids) plus the code-regen cooldown. Public rooms and
+---non-members are refused. Read-only.
+---@param src integer player server id
+---@param roomId string room id
+---@return table result { success, data = { notifications, isCreator, code, members?, bans?, codeCooldown? } }
+function actions.roomInfo(src, roomId)
+    local cid = cidOf(src)
+    if not cid then return { success = false } end
+    if type(roomId) ~= 'string' or PUBLIC_BY_ID[roomId] then return { success = false, message = 'No settings for this room' } end
+    if not store.isMember(roomId, cid) then return { success = false, message = 'No access to that room' } end
+
+    local room = store.roomById(roomId)
+    if not room then return { success = false, message = 'No such room' } end
+
+    local isCreator = room.owner == cid
+    local data = {
+        notifications = store.getNotifications(roomId, cid),
+        isCreator = isCreator,
+        code = room.code,
+    }
+    if isCreator then
+        local members = {}
+        for _, m in ipairs(store.membersWithNames(roomId)) do
+            members[#members + 1] = {
+                id = memberToken(roomId, m.citizenid),
+                name = (type(m.nickname) == 'string' and m.nickname ~= '') and m.nickname or '',
+                creator = m.citizenid == room.owner,
+            }
+        end
+        data.members = members
+        local bans = {}
+        for _, b in ipairs(store.bansWithNames(roomId)) do
+            bans[#bans + 1] = {
+                id = memberToken(roomId, b.citizenid),
+                name = (type(b.nickname) == 'string' and b.nickname ~= '') and b.nickname or '',
+            }
+        end
+        data.bans = bans
+        data.codeCooldown = codeCooldownLeft(room)
+    end
+    return { success = true, data = data }
+end
+
+---Toggles the caller's own per-room notification flag on a private room they belong to. Public
+---rooms and non-members are refused.
+---@param src integer player server id
+---@param roomId any room id
+---@param enabled any client-supplied on/off
+---@return table result { success, data = { enabled } }
+function actions.setNotifications(src, roomId, enabled)
+    local cid = cidOf(src)
+    if not cid then return { success = false } end
+    if type(roomId) ~= 'string' or PUBLIC_BY_ID[roomId] then return { success = false, message = 'No settings for this room' } end
+    if not store.isMember(roomId, cid) then return { success = false, message = 'No access to that room' } end
+    local on = enabled == true or enabled == 1
+    store.setNotifications(roomId, cid, on)
+    return { success = true, data = { enabled = on } }
+end
+
+---The notification fan-out target for a freshly-sent message: the room's display name, a banner
+---preview line, and the citizenids of members (other than the sender) who opted in. nil for
+---public rooms, unknown rooms, or when nobody opted in - the init layer then knows to skip it.
+---@param src integer sender server id
+---@param roomId string room id
+---@param message table client-shaped message from actions.send
+---@return table|nil { title, body, citizenids }
+function actions.notifyTargets(src, roomId, message)
+    if PUBLIC_BY_ID[roomId] then return nil end
+    local cid = cidOf(src)
+    if not cid then return nil end
+    local room = store.roomById(roomId)
+    if not room then return nil end
+    local citizenids = store.notifyMembersFor(roomId, cid)
+    if #citizenids == 0 then return nil end
+    return { title = room.name, body = previewLine(message), citizenids = citizenids }
+end
+
+---Removes a member from a private room on the creator's behalf. Server-validated: the caller must
+---be that room's creator, the token must resolve to a current member, and the target may not be
+---the creator. The kicked player keeps no ban - they can rejoin later with the code, mirroring
+---leave/join. Returns the resolved target citizenid for the init layer's live push (never
+---forwarded to the client).
+---@param src integer player server id
+---@param roomId any room id
+---@param token any client-supplied member token
+---@return table result { success, data = { roomId, memberId, targetCid } }
+function actions.kick(src, roomId, token)
+    local cid = cidOf(src)
+    if not cid then return { success = false } end
+    if type(roomId) ~= 'string' or PUBLIC_BY_ID[roomId] then return { success = false, message = 'Cannot remove from this room' } end
+
+    local room = store.roomById(roomId)
+    if not room then return { success = false, message = 'No such room' } end
+    if room.owner ~= cid then return { success = false, message = 'Only the room creator can remove members' } end
+
+    local targetCid = resolveMemberToken(roomId, token)
+    if not targetCid then return { success = false, message = 'No such member' } end
+    if targetCid == room.owner then return { success = false, message = 'You cannot remove yourself' } end
+
+    store.removeMember(roomId, targetCid)
+    return { success = true, data = { roomId = roomId, memberId = token, targetCid = targetCid } }
+end
+
+---Bans a member from a private room on the creator's behalf: same validation as kick, but the
+---target also lands on the room's ban list, so the code no longer readmits them. Returns the
+---room name for the init layer's banned-notification banner (target cid never reaches clients).
+---@param src integer player server id
+---@param roomId any room id
+---@param token any client-supplied member token
+---@return table result { success, data = { roomId, roomName, memberId, name, targetCid } }
+function actions.ban(src, roomId, token)
+    local cid = cidOf(src)
+    if not cid then return { success = false } end
+    if type(roomId) ~= 'string' or PUBLIC_BY_ID[roomId] then return { success = false, message = 'Cannot ban from this room' } end
+
+    local room = store.roomById(roomId)
+    if not room then return { success = false, message = 'No such room' } end
+    if room.owner ~= cid then return { success = false, message = 'Only the room creator can ban members' } end
+
+    local targetCid = resolveMemberToken(roomId, token)
+    if not targetCid then return { success = false, message = 'No such member' } end
+    if targetCid == room.owner then return { success = false, message = 'You cannot ban yourself' } end
+
+    local name = ''
+    for _, m in ipairs(store.membersWithNames(roomId)) do
+        if m.citizenid == targetCid then
+            name = (type(m.nickname) == 'string' and m.nickname ~= '') and m.nickname or ''
+            break
+        end
+    end
+
+    store.addBan(roomId, targetCid, os.time())
+    store.removeMember(roomId, targetCid)
+    return { success = true, data = {
+        roomId = roomId, roomName = room.name, memberId = token, name = name, targetCid = targetCid,
+    } }
+end
+
+---The banned citizenid a client-supplied token refers to within `roomId`, or nil. The banned
+---twin of resolveMemberToken, with the same collision defense.
+---@param roomId string room id
+---@param token any client-supplied ban token
+---@return string|nil citizenid
+local function resolveBanToken(roomId, token)
+    if type(token) ~= 'string' or token == '' then return nil end
+    local found
+    for _, b in ipairs(store.bansWithNames(roomId)) do
+        if memberToken(roomId, b.citizenid) == token then
+            if found then return nil end
+            found = b.citizenid
+        end
+    end
+    return found
+end
+
+---Lifts a ban on the creator's behalf. The unbanned player is NOT re-added to the room - they
+---may rejoin with the code like anyone else.
+---@param src integer player server id
+---@param roomId any room id
+---@param token any client-supplied ban token
+---@return table result { success, data = { roomId, memberId } }
+function actions.unban(src, roomId, token)
+    local cid = cidOf(src)
+    if not cid then return { success = false } end
+    if type(roomId) ~= 'string' or PUBLIC_BY_ID[roomId] then return { success = false, message = 'No bans in this room' } end
+
+    local room = store.roomById(roomId)
+    if not room then return { success = false, message = 'No such room' } end
+    if room.owner ~= cid then return { success = false, message = 'Only the room creator can unban members' } end
+
+    local targetCid = resolveBanToken(roomId, token)
+    if not targetCid then return { success = false, message = 'No such ban' } end
+
+    store.removeBan(roomId, targetCid)
+    return { success = true, data = { roomId = roomId, memberId = token } }
+end
+
+---Mints a fresh join code for a private room on the creator's behalf, cooldown-guarded so the
+---code can't be spam-cycled. The room id (and everything keyed by it) stays put - the retired
+---code simply stops resolving, so it no longer admits anyone. Existing members are unaffected.
+---@param src integer player server id
+---@param roomId any room id
+---@return table result { success, data = { roomId, code, cooldown } }
+function actions.regenCode(src, roomId)
+    local cid = cidOf(src)
+    if not cid then return { success = false } end
+    if type(roomId) ~= 'string' or PUBLIC_BY_ID[roomId] then return { success = false, message = 'This room has no code' } end
+
+    local room = store.roomById(roomId)
+    if not room then return { success = false, message = 'No such room' } end
+    if room.owner ~= cid then return { success = false, message = 'Only the room creator can change the code' } end
+
+    local left = codeCooldownLeft(room)
+    if left > 0 then
+        return { success = false, message = ('Wait %ds before changing the code again'):format(left) }
+    end
+
+    local code
+    repeat code = genCode() until not store.roomByCode(code)
+    store.updateRoomCode(roomId, code, os.time())
+    return { success = true, data = {
+        roomId = roomId, code = code, cooldown = tonumber(DC.CodeRegenCooldownSeconds) or 300,
+    } }
 end
 
 return actions
