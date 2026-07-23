@@ -56,7 +56,7 @@ export function TextEditor({ doc, backLabel, onBack, onSave, onSigned, animateIn
 
     return (
         <div
-            className="absolute inset-0 z-30 flex flex-col bg-white dark:bg-base text-black dark:text-white"
+            className="absolute inset-0 z-30 flex flex-col bg-[#d4d4d4] dark:bg-base text-black dark:text-white"
             style={pageStyle}
         >
             <div className="h-[58px] shrink-0" aria-hidden />
@@ -71,15 +71,15 @@ export function TextEditor({ doc, backLabel, onBack, onSave, onSigned, animateIn
                     <span className="text-[17px]">{backLabel}</span>
                 </button>
                 <span className="min-w-0 flex-1 truncate text-center text-[17px] font-semibold">{doc.name}</span>
-                <span className="flex w-[68px] shrink-0 items-center justify-end pr-1.5">
+                <span className="flex min-w-[68px] shrink-0 items-center justify-end pr-1.5">
                     {signed ? (
-                        <span className="flex items-center gap-1 text-[13px] text-ios-blue">
-                            <BadgeCheck className="h-[15px] w-[15px]" strokeWidth={2.2} />
+                        <span className="flex items-center gap-1.5 rounded-full bg-ios-blue/15 px-3 py-[5px] text-[14px] font-medium text-ios-blue">
+                            <BadgeCheck className="h-[16px] w-[16px]" strokeWidth={2.2} />
                             {t('documents.signed', 'Signed')}
                         </span>
                     ) : doc.locked ? (
-                        <span className="flex items-center gap-1 text-[13px] text-ios-gray">
-                            <Lock className="h-[14px] w-[14px]" strokeWidth={2.4} />
+                        <span className="flex items-center gap-1.5 rounded-full bg-black/[0.07] px-3 py-[5px] text-[14px] font-medium text-ios-gray dark:bg-white/[0.1]">
+                            <Lock className="h-[15px] w-[15px]" strokeWidth={2.4} />
                             {t('documents.readOnly', 'Read Only')}
                         </span>
                     ) : null}
@@ -109,16 +109,16 @@ export function TextEditor({ doc, backLabel, onBack, onSave, onSigned, animateIn
             </div>
 
             <div className="flex shrink-0 items-center justify-between px-4 pb-12 pt-2">
-                <span className="text-[13px] text-ios-gray tabular-nums">
+                <span className="text-[14px] text-ios-gray tabular-nums">
                     {t('documents.charCount', '{n} of {max} characters', { n: body.length, max: MAX_TEXT_LENGTH })}
                 </span>
                 {!signed && doc.signable !== false && (
                     <button
                         type="button"
                         onClick={() => setSignOpen(true)}
-                        className="flex items-center gap-1.5 text-[15px] font-semibold text-ios-blue active:opacity-60"
+                        className="flex items-center gap-1.5 text-[17px] font-semibold text-ios-blue active:opacity-60"
                     >
-                        <PenLine className="h-[16px] w-[16px]" strokeWidth={2.3} />
+                        <PenLine className="h-[18px] w-[18px]" strokeWidth={2.3} />
                         {t('documents.sign', 'Sign')}
                     </button>
                 )}
