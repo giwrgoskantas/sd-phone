@@ -16,6 +16,7 @@ local fail          = util.fail
 
 -- Delivers an accepted document AirShare into the recipient's library.
 share.registerHandler('document', actions.deliverShare)
+share.registerHandler('signature-request', actions.deliverSignRequest)
 
 ---Boot-time schema bootstrap; a failure is printed and non-fatal.
 CreateThread(function()
@@ -49,6 +50,13 @@ lib.callback.register('sd-phone:server:documents:share', function(src, payload)
     if type(payload) ~= 'table' then payload = {} end
     return actions.requestShare(src, payload.target, payload)
 end)
+
+---Asks a nearby player to counter-sign one of the caller's signed documents.
+lib.callback.register('sd-phone:server:documents:requestSignature', function(src, payload)
+    if type(payload) ~= 'table' then payload = {} end
+    return actions.requestSignature(src, payload.target, payload)
+end)
+lib.callback.register('sd-phone:server:documents:signRequest:respond', function(src, payload) return actions.respondSignRequest(src, payload) end)
 
 ---Announces an export-created document (server-local hook), pushes it into the owner's open
 ---phone, and fires a notification banner unless the caller opted out.

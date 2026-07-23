@@ -17,7 +17,7 @@ import { ShareSheet } from '@/shared/ShareSheet';
 import {
     apiCreateDoc, apiCreateFolder, apiDeleteDoc, apiDeleteFolder, apiDuplicateDoc,
     apiGetDoc, apiImportImage, apiList, apiMoveDoc, apiRenameDoc, apiRenameFolder,
-    apiSaveDoc, shareDocumentApi,
+    apiSaveDoc, requestSignatureApi, shareDocumentApi,
 } from './documentsApi';
 import { Browse } from './Browse';
 import { Recents } from './Recents';
@@ -68,6 +68,7 @@ export function Documents({ onClose: _onClose }: { onClose: () => void }) {
     const [renaming,   setRenaming]   = useState<Renaming | null>(null);
     const [moving,     setMoving]     = useState<DocFile | null>(null);
     const [sharing,    setSharing]    = useState<DocFile | null>(null);
+    const [sigRequesting, setSigRequesting] = useState<DocFile | null>(null);
     const [delDoc,     setDelDoc]     = useState<DocFile | null>(null);
     const [delFolder,  setDelFolder]  = useState<DocFolder | null>(null);
 
@@ -167,6 +168,9 @@ export function Documents({ onClose: _onClose }: { onClose: () => void }) {
         ...(moreDoc.locked ? [] : [{ label: t('documents.move', 'Move'), onClick: () => setMoving(moreDoc) }]),
         { label: t('documents.duplicate', 'Duplicate'), onClick: () => void doDuplicate(moreDoc) },
         ...(ALLOW_SHARE && !moreDoc.locked ? [{ label: t('documents.share', 'Share'), onClick: () => setSharing(moreDoc) }] : []),
+        ...(ALLOW_SHARE && !moreDoc.locked && moreDoc.kind === 'text' && moreDoc.signedByMe === true && moreDoc.signable !== false
+            ? [{ label: t('documents.requestSignature', 'Request Signature'), onClick: () => setSigRequesting(moreDoc) }]
+            : []),
         ...(moreDoc.deletable === false ? [] : [{
             label: t('documents.delete', 'Delete'),
             destructive: true,
@@ -287,6 +291,13 @@ export function Documents({ onClose: _onClose }: { onClose: () => void }) {
                 <ShareSheet
                     onClose={() => setSharing(null)}
                     onShare={target => shareDocumentApi(target.id, sharing.id)}
+                />
+            )}
+
+            {sigRequesting && (
+                <ShareSheet
+                    onClose={() => setSigRequesting(null)}
+                    onShare={target => requestSignatureApi(target.id, sigRequesting.id)}
                 />
             )}
 

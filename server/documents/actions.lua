@@ -161,10 +161,12 @@ function actions.list(src)
     for _, row in ipairs(store.listFolders(cid)) do folders[#folders + 1] = serializeFolder(row) end
 
     local signed = store.listSignedDocIds(cid)
+    local mine   = store.listMySignedDocIds(cid)
     local docs = {}
     for _, row in ipairs(store.listDocs(cid)) do
         local doc = serializeDoc(row)
-        doc.signed = signed[row.id] == true
+        doc.signed     = signed[row.id] == true
+        doc.signedByMe = mine[row.id] == true
         docs[#docs + 1] = doc
     end
 
@@ -667,6 +669,139 @@ function actions.sign(src, payload)
         signer = player.getName(src) or 'Unknown', image = image, ts = os.time(),
     })
     return ok({ doc = attachSignatures(serializeDoc(row), id, cid) })
+end
+
+-- Signature requests: the target signs the sender's ORIGINAL document, then receives a
+-- completed copy. Pending state lives here between accept and answer.
+---@type table<string, table> Pending requests: [id] = { docId, ownerCid, fromName, docName, targetCid, expires }.
+local signRequests = {}
+
+---Drops every expired pending signature request.
+local function pruneSignRequests()
+    local now = os.time()
+    for id, req in pairs(signRequests) do
+        if now > req.expires then signRequests[id] = nil end
+    end
+end
+
+---Opens an AirShare signature request on one of the caller's signed text documents. The caller
+---must have signed first - you don't ask for a signature on paper you haven't signed yourself.
+---@param src integer sender server id
+---@param target any client-supplied recipient server id (validated by share.request)
+---@param payload { id?: string }
+---@return table result envelope
+function actions.requestSignature(src, target, payload)
+    if type(payload) ~= 'table' then payload = {} end
+    if not cfg.AllowShare then return fail('Sharing is disabled') end
+    local cid = player.getIdentifier(src)
+    if not cid then return fail('Player not found') end
+
+    local id = type(payload.id) == 'string' and payload.id or ''
+    local row = store.getDoc(cid, id)
+    if not row then return fail('Document not found') end
+    if isTruthy(row.locked) then return fail('This document cannot be shared') end
+    if row.kind ~= 'text' then return fail('Only text documents can be signed') end
+    if row.signable ~= nil and not isTruthy(row.signable) then return fail('This document cannot be signed') end
+    if not store.hasSigned(id, cid) then return fail('Sign the document yourself first') end
+
+    local okSent, msg = share.request(src, target, 'signature-request', {
+        docId = id, ownerCid = cid, fromName = player.getName(src) or 'Someone',
+    })
+    if not okSent then return fail(msg or 'Could not send request') end
+    return ok({})
+end
+
+---AirShare 'signature-request' accept handler: re-reads the document fresh, opens a pending
+---entry and pushes the preview + sign prompt to the target's phone.
+---@param targetSrc number recipient server id
+---@param payload table vetted request payload { docId, ownerCid, fromName }
+---@return boolean delivered
+function actions.deliverSignRequest(targetSrc, payload)
+    pruneSignRequests()
+    local tcid = player.getIdentifier(targetSrc)
+    if not tcid or type(payload) ~= 'table' then return false end
+
+    local row = store.getDoc(payload.ownerCid, payload.docId)
+    if not row or row.kind ~= 'text' then return false end
+    if row.signable ~= nil and not isTruthy(row.signable) then return false end
+    if store.hasSigned(payload.docId, tcid) then return false end
+
+    local requestId = newId()
+    signRequests[requestId] = {
+        docId = payload.docId, ownerCid = payload.ownerCid, fromName = payload.fromName,
+        docName = row.name, targetCid = tcid, expires = os.time() + 300,
+    }
+
+    local doc = attachSignatures(serializeDoc(row), payload.docId, tcid)
+    TriggerClientEvent('sd-phone:client:documents:signRequest', targetSrc, {
+        requestId = requestId, fromName = payload.fromName, doc = doc,
+    })
+    return true
+end
+
+---The target's answer to a pending signature request. Accepting signs the owner's original
+---with the responder's saved personal signature, live-updates the owner's open phone, and
+---delivers a completed copy (every signature attached) back to the responder.
+---@param src integer responder server id
+---@param payload { requestId?: string, accept?: boolean }
+---@return table result envelope with { doc } on accept
+function actions.respondSignRequest(src, payload)
+    pruneSignRequests()
+    if type(payload) ~= 'table' then payload = {} end
+    local cid = player.getIdentifier(src)
+    if not cid then return fail('Player not found') end
+
+    local requestId = type(payload.requestId) == 'string' and payload.requestId or ''
+    local req = signRequests[requestId]
+    if not req or req.targetCid ~= cid then return fail('Request not found or expired') end
+    signRequests[requestId] = nil
+
+    local ownerSrc = player.getSourceByIdentifier(req.ownerCid)
+
+    if payload.accept ~= true then
+        if ownerSrc then
+            TriggerClientEvent('sd-phone:client:notify', ownerSrc, {
+                app = 'documents', appId = 'documents', time = 'now', title = 'Files',
+                body = ('%s declined to sign "%s"'):format(player.getName(src) or 'Someone', req.docName),
+            })
+        end
+        return ok({})
+    end
+
+    local row = store.getDoc(req.ownerCid, req.docId)
+    if not row then return fail('The document no longer exists') end
+    if store.hasSigned(req.docId, cid) then return fail('You have already signed this document') end
+
+    local image = store.getPersonalSignature(cid)
+    if not image then return fail('Draw your signature first') end
+
+    store.addSignature({
+        id = newId(), docId = req.docId, citizenid = cid,
+        signer = player.getName(src) or 'Unknown', image = image, ts = os.time(),
+    })
+
+    -- The responder's completed copy carries every signature, theirs included.
+    local sigs = {}
+    for _, s in ipairs(store.listSignatures(req.docId)) do
+        sigs[#sigs + 1] = { citizenid = s.citizenid, signer = s.signer, image = s.image, created_at = s.created_at }
+    end
+    actions.deliverShare(src, {
+        name = row.name, kind = row.kind, content = row.content, url = row.url,
+        size = tonumber(row.size) or 0, source = row.source,
+        signable = not (row.signable == false or row.signable == 0),
+        signatures = sigs, fromName = req.fromName, quiet = true,
+    })
+
+    if ownerSrc then
+        local ownerDoc = attachSignatures(serializeDoc(row), req.docId, req.ownerCid)
+        TriggerClientEvent('sd-phone:client:documents:added', ownerSrc, { doc = ownerDoc })
+        TriggerClientEvent('sd-phone:client:notify', ownerSrc, {
+            app = 'documents', appId = 'documents', time = 'now', title = 'Files',
+            body = ('%s signed "%s"'):format(player.getName(src) or 'Someone', req.docName),
+        })
+    end
+
+    return ok({ doc = attachSignatures(serializeDoc(row), req.docId, cid) })
 end
 
 ---Opens an AirShare request offering one of the caller's documents to a nearby player. The

@@ -5,6 +5,7 @@ import { PayphoneUI } from '@/payphone/PayphoneUI';
 import { CallLayer } from '@/apps/phone/CallLayer';
 import { NotificationHost, type NotificationItem } from '@/shell/Notifications';
 import { AirShareCard, type AirShareRequest } from '@/shared/AirShare';
+import { SignRequestLayer, type SignRequestData } from '@/apps/documents/SignRequestLayer';
 import { ControlCenter, ControlCenterHotzone } from '@/shell/ControlCenter';
 import { MusicProvider, useMusic } from '@/apps/music/MusicContext';
 import { ryDevDataHidden, ryDevToggleData } from '@/apps/ryde/data';
@@ -923,6 +924,11 @@ function AppContent() {
         setAirshare(prev => prev.filter(r => r.id !== id));
     }, []);
 
+    const [signReqs, setSignReqs] = useState<SignRequestData[]>([]);
+    useNuiEvent('sd-phone:documents:signRequest', useCallback((data) => {
+        setSignReqs(prev => (prev.some(r => r.requestId === data.requestId) ? prev : [...prev, data]));
+    }, []));
+
     const warmedImages = useRef<Map<string, HTMLImageElement>>(new Map());
     const warmImage = useCallback((src: string) => {
         if (!src || warmedImages.current.has(src)) return;
@@ -1358,6 +1364,14 @@ function AppContent() {
                     <div className="absolute inset-x-0 top-[10px] z-[58] px-3">
                         <AirShareCard request={airshare[0]} onRespond={(a) => respondAirshare(airshare[0]!.id, a)} />
                     </div>
+                )}
+
+                {signReqs[0] && (
+                    <SignRequestLayer
+                        key={signReqs[0].requestId}
+                        request={signReqs[0]}
+                        onDone={() => setSignReqs(prev => prev.slice(1))}
+                    />
                 )}
 
                 {!showSetup && (

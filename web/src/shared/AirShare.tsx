@@ -20,7 +20,11 @@ export function AirShareCard({ request, onRespond }: {
         : request.kind === 'pin' ? t('common.aMapPin', 'a map pin')
         : request.kind === 'music-track' ? t('common.aSong', 'a song')
         : request.kind === 'music-playlist' ? t('common.aPlaylist', 'a playlist')
+        : request.kind === 'document' ? t('common.aDocument', 'a document')
         : t('common.aContact', 'a contact');
+    const message = request.kind === 'signature-request'
+        ? t('common.asksYouToSign', '{name} asks you to sign a document', { name: request.fromName })
+        : t('common.wouldLikeToShare', '{name} would like to share {kind}', { name: request.fromName, kind: kindText });
 
     function close(accept: boolean) {
         if (exiting) return;
@@ -41,7 +45,7 @@ export function AirShareCard({ request, onRespond }: {
                 <div className="min-w-0 flex-1">
                     <div className="text-[22px] font-bold text-white">AirShare</div>
                     <p className="mt-1 text-[16px] leading-snug text-white/55">
-                        {t('common.wouldLikeToShare', '{name} would like to share {kind}', { name: request.fromName, kind: kindText })}
+                        {message}
                     </p>
                 </div>
                 <InitialsAvatar name={request.fromName} color={colorFor(request.fromName)} size={78} />

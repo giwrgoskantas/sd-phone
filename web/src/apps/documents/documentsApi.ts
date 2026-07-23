@@ -160,6 +160,16 @@ export async function shareDocumentApi(target: number, id: string): Promise<bool
     return (await apiCall('sd-phone:documents:share', { target, id })).success;
 }
 
+export async function requestSignatureApi(target: number, id: string): Promise<boolean> {
+    if (!isFiveM) return true;
+    return (await apiCall('sd-phone:documents:signRequest:send', { target, id })).success;
+}
+
+export async function respondSignRequestApi(requestId: string, accept: boolean): Promise<DocFile | null> {
+    if (!isFiveM) return null;
+    return (await apiData<{ doc: DocFile }>('sd-phone:documents:signRequest:respond', { requestId, accept }))?.doc ?? null;
+}
+
 export async function apiGetSignature(): Promise<string | null> {
     if (!isFiveM) return devSignature;
     return (await apiData<{ image?: string | null }>('sd-phone:documents:signature:get'))?.image ?? null;

@@ -450,11 +450,14 @@ function AnimatedHeight({ children }: { children: React.ReactNode }) {
     );
 }
 
-function SignSheet({ docId, docName, onClose, onSigned }: {
+export function SignSheet({ docId, docName, onClose, onSigned, signAction }: {
     docId:    string;
     docName:  string;
     onClose:  () => void;
     onSigned: (doc: DocFile) => void;
+    /** Overrides the default sign call (apiSignDoc) - used by signature requests, where the
+     *  responder signs the requester's original instead of their own document. */
+    signAction?: () => Promise<DocFile | null>;
 }) {
     const padRef = useRef<SignaturePadHandle>(null);
     const { myName, load } = useContacts('myName', 'load');
@@ -506,7 +509,7 @@ function SignSheet({ docId, docName, onClose, onSigned }: {
                 return;
             }
         }
-        const updated = await apiSignDoc(docId);
+        const updated = await (signAction ? signAction() : apiSignDoc(docId));
         if (!updated) {
             setError(t('documents.signFailed', 'The document could not be signed.'));
             setBusy(false);

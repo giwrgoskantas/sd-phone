@@ -305,6 +305,20 @@ function store.listSignedDocIds(cid)
     return set
 end
 
+---The ids of a player's documents that carry the player's OWN signature, as a set. Read-only.
+---@param cid string owner citizenid
+---@return table<string, boolean> signed
+function store.listMySignedDocIds(cid)
+    local rows = MySQL.query.await([[
+        SELECT DISTINCT s.doc_id FROM `phone_document_signatures` s
+        JOIN `phone_documents` d ON d.id = s.doc_id
+        WHERE d.citizenid = ? AND s.citizenid = ?
+    ]], { cid, cid }) or {}
+    local set = {}
+    for i = 1, #rows do set[rows[i].doc_id] = true end
+    return set
+end
+
 ---True when this signer already has a signature on the document. Read-only.
 ---@param docId string document id
 ---@param cid string signer citizenid

@@ -19,6 +19,8 @@ proxy('sd-phone:documents:signature:get', 'sd-phone:server:documents:signature:g
 proxy('sd-phone:documents:signature:set', 'sd-phone:server:documents:signature:set')
 proxy('sd-phone:documents:sign',          'sd-phone:server:documents:sign')
 proxy('sd-phone:documents:share',        'sd-phone:server:documents:share')
+proxy('sd-phone:documents:signRequest:send',    'sd-phone:server:documents:requestSignature')
+proxy('sd-phone:documents:signRequest:respond', 'sd-phone:server:documents:signRequest:respond')
 
 ---Server push: a document was created for us elsewhere (an export or another resource); relays
 ---it to the open app so the listing updates live.
@@ -32,4 +34,10 @@ end)
 ---@param data table { doc, fromName } from server/documents
 RegisterNetEvent('sd-phone:client:documents:receive', function(data)
     SendNUIMessage({ action = 'sd-phone:documents:receive', data = data })
+end)
+
+---Server push: an accepted signature request; relays the preview + sign prompt payload.
+---@param data table { requestId, fromName, doc } from server/documents
+RegisterNetEvent('sd-phone:client:documents:signRequest', function(data)
+    SendNUIMessage({ action = 'sd-phone:documents:signRequest', data = data })
 end)
