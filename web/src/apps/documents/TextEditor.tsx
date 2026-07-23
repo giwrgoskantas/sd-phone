@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BadgeCheck, ChevronLeft, Lock, PenLine } from 'lucide-react';
 
 import { useIosPush } from '@/hooks/useIosPush';
 import { t } from '@/i18n';
+import { useContacts } from '@/stores/contactsStore';
+import { AlertDialog } from '@/ui/AlertDialog';
 import { Sheet } from '@/ui/Sheet';
 import { apiGetSignature, apiSetSignature, apiSignDoc } from './documentsApi';
-import { SignaturePad, type SignaturePadHandle } from './SignaturePad';
+import { SIGNATURE_STYLES, SignaturePad, renderTypedSignature, type SignaturePadHandle } from './SignaturePad';
 import { MAX_TEXT_LENGTH, formatDocDate, type DocFile, type DocSignature } from './data';
 
 interface Props {
@@ -125,6 +127,7 @@ export function TextEditor({ doc, backLabel, onBack, onSave, onSigned, animateIn
             {signOpen && (
                 <SignSheet
                     docId={doc.id}
+                    docName={doc.name}
                     onClose={() => setSignOpen(false)}
                     onSigned={updated => {
                         setSignOpen(false);
@@ -215,36 +218,81 @@ function SignatureBlock({ sig }: { sig: DocSignature }) {
 }
 
 
-function SignSheet({ docId, onClose, onSigned }: {
+type SignMode = 'saved' | 'draw' | 'type';
+
+// The sheet is bottom-anchored, so animating this wrapper's height makes mode switches grow
+// and shrink upward smoothly instead of snapping. Content height is tracked live (fonts and
+// the saved-signature image settle async), driven by CSS - no rAF (starved in CEF in-game).
+function AnimatedHeight({ children }: { children: React.ReactNode }) {
+    const innerRef = useRef<HTMLDivElement>(null);
+    const [height, setHeight] = useState<number | null>(null);
+    useLayoutEffect(() => {
+        const el = innerRef.current;
+        if (!el) return;
+        const measure = () => setHeight(el.offsetHeight);
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+    return (
+        <div
+            className="overflow-hidden"
+            style={{ height: height ?? undefined, transition: 'height 0.32s cubic-bezier(0.32, 0.72, 0, 1)' }}
+        >
+            <div ref={innerRef}>{children}</div>
+        </div>
+    );
+}
+
+function SignSheet({ docId, docName, onClose, onSigned }: {
     docId:    string;
+    docName:  string;
     onClose:  () => void;
     onSigned: (doc: DocFile) => void;
 }) {
     const padRef = useRef<SignaturePadHandle>(null);
+    const { myName, load } = useContacts('myName', 'load');
     const [saved,   setSaved]   = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [drawing, setDrawing] = useState(false);
+    const [mode,    setMode]    = useState<SignMode>('draw');
     const [hasInk,  setHasInk]  = useState(false);
+    const [typed,   setTyped]   = useState('');
+    const [styleId, setStyleId] = useState(SIGNATURE_STYLES[0].id);
     const [busy,    setBusy]    = useState(false);
     const [error,   setError]   = useState<string | null>(null);
+    const [confirming, setConfirming] = useState(false);
 
+    useEffect(() => { void load(); }, [load]);
     useEffect(() => {
         let alive = true;
         void apiGetSignature().then(image => {
             if (!alive) return;
             setSaved(image);
-            setDrawing(!image);
+            setMode(image ? 'saved' : 'draw');
             setLoading(false);
         });
         return () => { alive = false; };
     }, []);
 
+    // The typed name defaults to the character once contacts resolve; a name the player
+    // already typed is never overwritten.
+    useEffect(() => {
+        if (myName) setTyped(prev => (prev === '' ? myName : prev));
+    }, [myName]);
+
+    const typedOk = typed.trim().length >= 2;
+    const canSign = !loading && !busy
+        && (mode === 'saved' || (mode === 'draw' && hasInk) || (mode === 'type' && typedOk));
+
     async function sign() {
-        if (busy) return;
+        if (!canSign) return;
         setBusy(true);
         setError(null);
-        if (drawing) {
-            const image = padRef.current?.toImage();
+        if (mode !== 'saved') {
+            const image = mode === 'draw'
+                ? padRef.current?.toImage()
+                : await renderTypedSignature(typed, SIGNATURE_STYLES.find(s => s.id === styleId) ?? SIGNATURE_STYLES[0]);
             if (!image) { setBusy(false); return; }
             const stored = await apiSetSignature(image);
             if (!stored) {
@@ -262,19 +310,72 @@ function SignSheet({ docId, onClose, onSigned }: {
         onSigned(updated);
     }
 
+    function switchMode(next: SignMode) {
+        setMode(next);
+        setHasInk(false);
+        setError(null);
+    }
+
     return (
         <Sheet onClose={onClose} fit="content" title={t('documents.signDocument', 'Sign Document')} className="bg-[#ececec] dark:bg-surface">
             {() => (
                 <div className="flex flex-col gap-3 px-5 pb-8 pt-1">
-                    {loading ? (
-                        <div className="h-[150px]" />
-                    ) : drawing ? (
-                        <SignaturePad ref={padRef} onInkChange={setHasInk} />
-                    ) : (
-                        <div className="flex items-center justify-center rounded-[12px] border border-black/10 bg-white px-4 py-5">
-                            <img src={saved ?? undefined} alt="" className="h-[84px] max-w-full object-contain" draggable={false} />
+                    {mode !== 'saved' && !loading && (
+                        <div className="flex rounded-[10px] bg-black/[0.06] p-[3px] dark:bg-white/[0.08]">
+                            <ModeTab label={t('documents.signModeDraw', 'Draw')} active={mode === 'draw'} onPress={() => switchMode('draw')} />
+                            <ModeTab label={t('documents.signModeType', 'Type')} active={mode === 'type'} onPress={() => switchMode('type')} />
                         </div>
                     )}
+
+                    <AnimatedHeight>
+                        <div className="flex flex-col gap-3">
+                            {loading ? (
+                                <div className="h-[150px]" />
+                            ) : mode === 'saved' ? (
+                                <div className="flex items-center justify-center rounded-[12px] border border-black/10 bg-white px-4 py-5">
+                                    <img src={saved ?? undefined} alt="" className="h-[84px] max-w-full object-contain" draggable={false} />
+                                </div>
+                            ) : mode === 'draw' ? (
+                                <SignaturePad ref={padRef} onInkChange={setHasInk} />
+                            ) : (
+                                <>
+                                    <input
+                                        value={typed}
+                                        onChange={e => setTyped(e.target.value)}
+                                        maxLength={40}
+                                        placeholder={t('documents.typeYourName', 'Type your name')}
+                                        className="rounded-[12px] border border-black/10 bg-white px-4 py-3 text-[17px] text-black outline-none placeholder:text-ios-gray3 focus:border-ios-blue"
+                                    />
+                                    <div className="flex flex-col gap-2">
+                                        {SIGNATURE_STYLES.map(s => (
+                                            <button
+                                                key={s.id}
+                                                type="button"
+                                                onClick={() => setStyleId(s.id)}
+                                                className={`flex h-[58px] items-center justify-between rounded-[12px] border bg-white px-4 text-left ${
+                                                    styleId === s.id ? 'border-ios-blue ring-1 ring-ios-blue' : 'border-black/10'
+                                                }`}
+                                            >
+                                                <span
+                                                    className="min-w-0 flex-1 truncate text-[#1d1d1f]"
+                                                    style={{
+                                                        fontFamily: s.fontFamily,
+                                                        fontWeight: s.fontWeight,
+                                                        fontStyle:  s.fontStyle,
+                                                        fontSize:   Math.round(s.fontSize * 0.55),
+                                                        lineHeight: 1.5,
+                                                    }}
+                                                >
+                                                    {typed.trim() || t('documents.typeYourName', 'Type your name')}
+                                                </span>
+                                                <span className="ml-3 shrink-0 text-[12px] text-ios-gray">{s.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </AnimatedHeight>
 
                     <p className="text-center text-[13px] leading-snug text-ios-gray">
                         {t('documents.signLockHint', 'Signing adds your name and locks this document from further edits.')}
@@ -284,43 +385,69 @@ function SignSheet({ docId, onClose, onSigned }: {
 
                     <button
                         type="button"
-                        disabled={busy || loading || (drawing && !hasInk)}
-                        onClick={() => void sign()}
+                        disabled={!canSign}
+                        onClick={() => setConfirming(true)}
                         className="rounded-[12px] bg-ios-blue py-3 text-[16px] font-semibold text-white active:opacity-80 disabled:opacity-40"
                     >
                         {t('documents.signDocument', 'Sign Document')}
                     </button>
 
-                    {drawing ? (
+                    {confirming && (
+                        <AlertDialog
+                            title={t('documents.confirmSignTitle', 'Sign Document?')}
+                            message={t('documents.confirmSignBody', 'You are about to sign "{name}". This locks the document from further edits and cannot be undone.', { name: docName })}
+                            confirmLabel={t('documents.sign', 'Sign')}
+                            onCancel={() => setConfirming(false)}
+                            onConfirm={() => { setConfirming(false); void sign(); }}
+                        />
+                    )}
+
+                    {mode === 'saved' ? (
+                        <button
+                            type="button"
+                            onClick={() => switchMode('draw')}
+                            className="text-[15px] text-ios-blue active:opacity-60"
+                        >
+                            {t('documents.redrawSignature', 'Replace Signature')}
+                        </button>
+                    ) : (
                         <div className="flex items-center justify-center gap-6">
-                            <button
-                                type="button"
-                                onClick={() => { padRef.current?.clear(); }}
-                                className="text-[15px] text-ios-blue active:opacity-60"
-                            >
-                                {t('documents.clearSignature', 'Clear')}
-                            </button>
+                            {mode === 'draw' && (
+                                <button
+                                    type="button"
+                                    onClick={() => { padRef.current?.clear(); }}
+                                    className="text-[15px] text-ios-blue active:opacity-60"
+                                >
+                                    {t('documents.clearSignature', 'Clear')}
+                                </button>
+                            )}
                             {saved && (
                                 <button
                                     type="button"
-                                    onClick={() => { setDrawing(false); setHasInk(false); }}
+                                    onClick={() => switchMode('saved')}
                                     className="text-[15px] text-ios-blue active:opacity-60"
                                 >
                                     {t('documents.useSavedSignature', 'Use Saved Signature')}
                                 </button>
                             )}
                         </div>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={() => setDrawing(true)}
-                            className="text-[15px] text-ios-blue active:opacity-60"
-                        >
-                            {t('documents.redrawSignature', 'Redraw Signature')}
-                        </button>
                     )}
                 </div>
             )}
         </Sheet>
+    );
+}
+
+function ModeTab({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onPress}
+            className={`flex-1 rounded-[8px] py-1.5 text-[14px] font-semibold transition-colors ${
+                active ? 'bg-white text-black shadow-sm dark:bg-elevated dark:text-white' : 'text-ios-gray'
+            }`}
+        >
+            {label}
+        </button>
     );
 }
