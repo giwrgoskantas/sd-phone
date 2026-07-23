@@ -4,8 +4,6 @@
 
 **An iOS-themed smartphone for FiveM. 45+ server-backed apps, real app accounts, a live game-view camera, online multiplayer games, and drop-in lb-phone compatibility.**
 
-The phone is **NOT ready yet for use on a live server**, this is for people to play around with it, report bugs and make PRs to speed up it's development, I'm hoping to have it done by the end of July.
-
 [![Release](https://img.shields.io/github/v/release/Samuels-Development/sd-phone?label=Release&logo=github)](https://github.com/Samuels-Development/sd-phone)
 [![Downloads](https://img.shields.io/github/downloads/Samuels-Development/sd-phone/total?label=Downloads&logo=github&color=94DD0C)](https://github.com/Samuels-Development/sd-phone)
 [![Stars](https://img.shields.io/github/stars/Samuels-Development/sd-phone?label=Stars&logo=github)](https://github.com/Samuels-Development/sd-phone)
@@ -21,11 +19,14 @@ The phone is **NOT ready yet for use on a live server**, this is for people to p
 </div>
 
 ---
-Thanks for trying this so early. I'd put the phone at about 85% done as of writing, so expect rough edges and a few gaps. Some apps are still mock-only or not fully wired up yet (Vibez, for example, has no backend at this point and only a mock frontend), and there's a good amount of polish and fixes left across the board
+Thanks for trying this so early. I'd put the phone at about 90% done as of writing, so expect rough edges and a few gaps. Some apps are still mock-only or not fully wired up yet (Vibez, for example, has no backend at this point and only a mock frontend), and there's a good amount of polish and fixes left across the board
 
-Any issues or PRs are highly appreciated.
+Any issues or PRs are highly appreciated. Ohhh and please ⭐the repo! :)
 
 ## Preview
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c1300d66-6530-47d4-ad02-676646b96fc7" />
+
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/352baf5c-fb7c-4791-9fcb-b76d1fc3168d" />
 
