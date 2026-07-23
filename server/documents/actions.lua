@@ -34,6 +34,7 @@ local function serializeDoc(row)
         size      = tonumber(row.size) or 0,
         locked    = isTruthy(row.locked),
         signable  = row.signable == nil or isTruthy(row.signable),
+        deletable = row.deletable == nil or isTruthy(row.deletable),
         source    = row.source,
         url       = row.url,
         content   = row.content,
@@ -335,7 +336,9 @@ function actions.move(src, payload)
     return ok({})
 end
 
----Deletes a document. Refuses a locked or missing document, scoped to the caller.
+---Deletes a document, scoped to the caller. Locked documents may be deleted too - the lock
+---freezes content and identity (rename/edit/move/share), not the owner's right to discard.
+---Only an issuer-set deletable = false withholds that right.
 ---@param src integer player server id
 ---@param payload { id?: string }
 ---@return table result envelope
@@ -347,15 +350,16 @@ function actions.delete(src, payload)
     local id = type(payload.id) == 'string' and payload.id or ''
     local row = store.getDoc(cid, id)
     if not row then return fail('Document not found') end
-    if isTruthy(row.locked) then return fail('This document is locked') end
+    if row.deletable ~= nil and not isTruthy(row.deletable) then return fail('This document cannot be deleted') end
 
     if store.deleteDoc(cid, id) == 0 then return fail('Could not delete document') end
     store.deleteSignaturesForDocs({ id })
     return ok({})
 end
 
----Deletes a folder and everything beneath it. Descendant folder ids are collected here; locked
----documents survive by re-parenting to root, then the rest and the folders are batch-removed.
+---Deletes a folder and everything beneath it. Descendant folder ids are collected here;
+---undeletable documents survive by re-parenting to root, then the rest and the folders are
+---batch-removed.
 ---@param src integer player server id
 ---@param payload { id?: string }
 ---@return table result envelope with { removedDocs }
@@ -390,13 +394,13 @@ function actions.deleteFolder(src, payload)
 
     local removedDocs, removedIds = 0, {}
     for _, row in ipairs(store.listDocs(cid)) do
-        if row.folder_id and inSet[row.folder_id] and not isTruthy(row.locked) then
+        if row.folder_id and inSet[row.folder_id] and (row.deletable == nil or isTruthy(row.deletable)) then
             removedDocs = removedDocs + 1
             removedIds[#removedIds + 1] = row.id
         end
     end
 
-    store.reparentLockedToRoot(cid, idList)
+    store.reparentUndeletableToRoot(cid, idList)
     store.deleteDocsInFolders(cid, idList)
     store.deleteFolders(cid, idList)
     store.deleteSignaturesForDocs(removedIds)
@@ -512,17 +516,19 @@ function actions.createForCid(cid, opts, sourceLabel)
     local folderId, ferr = resolveFolderName(cid, opts.folder)
     if ferr then return nil, ferr end
 
-    local locked   = opts.locked == true and 1 or 0
-    local signable = opts.signable ~= false
+    local locked    = opts.locked == true and 1 or 0
+    local signable  = opts.signable ~= false
+    local deletable = opts.deletable ~= false
     local source = type(sourceLabel) == 'string' and sourceLabel ~= '' and sourceLabel or nil
     local id, ts = newId(), os.time()
     store.createDoc(cid, {
         id = id, folderId = folderId, name = name, kind = kind,
-        content = content, url = url, size = size, locked = locked, signable = signable, source = source, ts = ts,
+        content = content, url = url, size = size, locked = locked, signable = signable, deletable = deletable, source = source, ts = ts,
     })
     return id, nil, serializeDoc({
         id = id, folder_id = folderId, name = name, kind = kind, content = content, url = url,
-        size = size, locked = locked, signable = signable and 1 or 0, source = source, created_at = ts, updated_at = ts,
+        size = size, locked = locked, signable = signable and 1 or 0, deletable = deletable and 1 or 0,
+        source = source, created_at = ts, updated_at = ts,
     })
 end
 

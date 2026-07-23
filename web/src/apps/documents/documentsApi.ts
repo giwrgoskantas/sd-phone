@@ -124,7 +124,7 @@ export async function apiImportImage(name: string, url: string, folderId: string
 export async function apiDeleteDoc(id: string): Promise<boolean> {
     if (!isFiveM) {
         const i = devDocs.findIndex(d => d.id === id);
-        if (i < 0) return false;
+        if (i < 0 || devDocs[i].deletable === false) return false;
         devDocs.splice(i, 1);
         return true;
     }
@@ -143,7 +143,9 @@ export async function apiDeleteFolder(id: string): Promise<number | null> {
         }
         let removed = 0;
         for (let i = devDocs.length - 1; i >= 0; i--) {
-            if (devDocs[i].folderId && ids.has(devDocs[i].folderId as string)) { devDocs.splice(i, 1); removed++; }
+            if (!devDocs[i].folderId || !ids.has(devDocs[i].folderId as string)) continue;
+            if (devDocs[i].deletable === false) { devDocs[i] = { ...devDocs[i], folderId: null }; continue; }
+            devDocs.splice(i, 1); removed++;
         }
         for (let i = devFolders.length - 1; i >= 0; i--) {
             if (ids.has(devFolders[i].id)) devFolders.splice(i, 1);

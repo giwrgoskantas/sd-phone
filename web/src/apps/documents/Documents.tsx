@@ -87,9 +87,12 @@ export function Documents({ onClose: _onClose }: { onClose: () => void }) {
                     if (f.parentId && ids.has(f.parentId) && !ids.has(f.id)) { ids.add(f.id); grew = true; }
                 }
             }
+            // Undeletable docs survive a folder delete server-side by re-parenting to root - mirror that.
             return {
                 folders: prev.folders.filter(f => !ids.has(f.id)),
-                docs:    prev.docs.filter(d => !(d.folderId && ids.has(d.folderId))),
+                docs:    prev.docs
+                    .filter(d => !(d.folderId && ids.has(d.folderId) && d.deletable !== false))
+                    .map(d => (d.folderId && ids.has(d.folderId) ? { ...d, folderId: null } : d)),
             };
         });
     }
@@ -164,7 +167,7 @@ export function Documents({ onClose: _onClose }: { onClose: () => void }) {
         ...(moreDoc.locked ? [] : [{ label: t('documents.move', 'Move'), onClick: () => setMoving(moreDoc) }]),
         { label: t('documents.duplicate', 'Duplicate'), onClick: () => void doDuplicate(moreDoc) },
         ...(ALLOW_SHARE && !moreDoc.locked ? [{ label: t('documents.share', 'Share'), onClick: () => setSharing(moreDoc) }] : []),
-        ...(moreDoc.locked ? [] : [{
+        ...(moreDoc.deletable === false ? [] : [{
             label: t('documents.delete', 'Delete'),
             destructive: true,
             onClick: () => setDelDoc(moreDoc),

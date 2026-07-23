@@ -38,6 +38,7 @@ function store.ensureSchema()
             `size`       INT           NOT NULL DEFAULT 0,
             `locked`     TINYINT(1)    NOT NULL DEFAULT 0,
             `signable`   TINYINT(1)    NOT NULL DEFAULT 1,
+            `deletable`  TINYINT(1)    NOT NULL DEFAULT 1,
             `source`     VARCHAR(64)   NULL,
             `created_at` BIGINT        NOT NULL,
             `updated_at` BIGINT        NOT NULL,
@@ -80,6 +81,9 @@ function store.ensureSchema()
     if not columnExists('phone_documents', 'signable') then
         MySQL.query.await('ALTER TABLE `phone_documents` ADD COLUMN `signable` TINYINT(1) NOT NULL DEFAULT 1')
     end
+    if not columnExists('phone_documents', 'deletable') then
+        MySQL.query.await('ALTER TABLE `phone_documents` ADD COLUMN `deletable` TINYINT(1) NOT NULL DEFAULT 1')
+    end
 
     util.ensureIndex('phone_documents', 'idx_phone_documents_folder', '(citizenid, folder_id)')
     util.ensureIndex('phone_documents', 'idx_phone_documents_updated', '(citizenid, updated_at)')
@@ -102,7 +106,7 @@ end
 ---@return table[] rows {id, folder_id, name, kind, url, size, locked, source, created_at, updated_at}
 function store.listDocs(cid)
     return MySQL.query.await([[
-        SELECT id, folder_id, name, kind, url, size, locked, signable, source, created_at, updated_at
+        SELECT id, folder_id, name, kind, url, size, locked, signable, deletable, source, created_at, updated_at
         FROM `phone_documents` WHERE citizenid = ? ORDER BY updated_at DESC
     ]], { cid }) or {}
 end
@@ -115,7 +119,7 @@ end
 function store.getDoc(cid, id)
     if not id or id == '' then return nil end
     return MySQL.single.await([[
-        SELECT id, folder_id, name, kind, content, url, size, locked, signable, source, created_at, updated_at
+        SELECT id, folder_id, name, kind, content, url, size, locked, signable, deletable, source, created_at, updated_at
         FROM `phone_documents` WHERE citizenid = ? AND id = ?
     ]], { cid, id })
 end
@@ -169,12 +173,12 @@ end
 function store.createDoc(cid, doc)
     MySQL.insert.await([[
         INSERT INTO `phone_documents`
-            (id, citizenid, folder_id, name, kind, content, url, size, locked, signable, source, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (id, citizenid, folder_id, name, kind, content, url, size, locked, signable, deletable, source, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ]], {
         doc.id, cid, doc.folderId, doc.name, doc.kind, doc.content, doc.url,
         doc.size or 0, doc.locked and 1 or 0, doc.signable == false and 0 or 1,
-        doc.source, doc.ts, doc.ts,
+        doc.deletable == false and 0 or 1, doc.source, doc.ts, doc.ts,
     })
 end
 
@@ -231,8 +235,9 @@ function store.deleteDoc(cid, id)
     ) or 0
 end
 
----Deletes every unlocked document sitting in any of the given folders, in one parameterized IN
----statement. Locked documents are left untouched. A no-op on an empty list.
+---Deletes every deletable document sitting in any of the given folders, in one parameterized IN
+---statement. Undeletable documents are left untouched (re-parent them to root first). A no-op
+---on an empty list.
 ---@param cid string owner citizenid
 ---@param idList string[] folder ids
 function store.deleteDocsInFolders(cid, idList)
@@ -244,17 +249,17 @@ function store.deleteDocsInFolders(cid, idList)
         params[i + 1] = idList[i]
     end
     MySQL.update.await(
-        ('DELETE FROM `phone_documents` WHERE citizenid = ? AND locked = 0 AND folder_id IN (%s)')
+        ('DELETE FROM `phone_documents` WHERE citizenid = ? AND deletable = 1 AND folder_id IN (%s)')
             :format(table.concat(placeholders, ', ')),
         params
     )
 end
 
----Re-parents any locked document in the given folders to root (folder_id = NULL) so a folder
----delete cannot destroy it. A no-op on an empty list.
+---Re-parents any undeletable document in the given folders to root (folder_id = NULL) so a
+---folder delete cannot destroy it. A no-op on an empty list.
 ---@param cid string owner citizenid
 ---@param idList string[] folder ids
-function store.reparentLockedToRoot(cid, idList)
+function store.reparentUndeletableToRoot(cid, idList)
     if not idList or #idList == 0 then return end
     local placeholders = {}
     local params = { cid }
@@ -263,7 +268,7 @@ function store.reparentLockedToRoot(cid, idList)
         params[i + 1] = idList[i]
     end
     MySQL.update.await(
-        ('UPDATE `phone_documents` SET folder_id = NULL WHERE citizenid = ? AND locked = 1 AND folder_id IN (%s)')
+        ('UPDATE `phone_documents` SET folder_id = NULL WHERE citizenid = ? AND deletable = 0 AND folder_id IN (%s)')
             :format(table.concat(placeholders, ', ')),
         params
     )
