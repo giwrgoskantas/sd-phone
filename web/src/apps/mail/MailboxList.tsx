@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import {
-    AlertOctagon, ChevronRight, FileText, Flag, GripVertical, Inbox, Send, SquarePen, Trash2,
+    AlertOctagon, BookUser, ChevronRight, FileText, Flag, GripVertical, Inbox, Send, SquarePen, Trash2,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 
@@ -24,6 +24,7 @@ interface Props {
     onLockApp:        () => void;
     onDeleteAccount:  (id: string) => void;
     onChangePassword: () => void;
+    onOpenSavedEmails: () => void;
 }
 
 const FOLDER_ICONS: Record<Folder, ComponentType<{ className?: string }>> = {
@@ -36,7 +37,7 @@ const FOLDER_ICONS: Record<Folder, ComponentType<{ className?: string }>> = {
 };
 
 export function MailboxList({
-    activeAccount, messages, folderOrder, onOpenFolder, onCompose, onReorderFolders, onLockApp, onDeleteAccount, onChangePassword,
+    activeAccount, messages, folderOrder, onOpenFolder, onCompose, onReorderFolders, onLockApp, onDeleteAccount, onChangePassword, onOpenSavedEmails,
 }: Props) {
     const [editing, setEditing] = useState(false);
     const [confirmOut, setConfirmOut] = useState(false);
@@ -225,8 +226,22 @@ export function MailboxList({
                 {activeAccount && (
                     <button
                         type="button"
+                        onClick={onOpenSavedEmails}
+                        className="mt-6 w-full overflow-hidden rounded-[10px] bg-[#e5e5e5] active:bg-black/5 dark:bg-surface dark:active:bg-white/5"
+                    >
+                        <div className="flex w-full items-center gap-4 px-4 py-[15px]">
+                            <BookUser className="h-[25px] w-[25px] shrink-0 text-ios-blue" />
+                            <span className="flex-1 text-left text-[18px]">{t('mail.savedEmails', 'Saved Emails')}</span>
+                            <ChevronRight className="ml-1 h-[19px] w-[19px] shrink-0 text-ios-gray3" strokeWidth={2.5} />
+                        </div>
+                    </button>
+                )}
+
+                {activeAccount && (
+                    <button
+                        type="button"
                         onClick={onChangePassword}
-                        className="mt-6 w-full rounded-[10px] bg-[#e5e5e5] py-4 text-center text-[18px] font-semibold text-ios-blue active:bg-black/5 dark:bg-surface dark:active:bg-white/5"
+                        className="mt-3 w-full rounded-[10px] bg-[#e5e5e5] py-4 text-center text-[18px] font-semibold text-ios-blue active:bg-black/5 dark:bg-surface dark:active:bg-white/5"
                     >
                         {t('mail.changePassword', 'Change Password')}
                     </button>

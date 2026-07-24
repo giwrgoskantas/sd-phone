@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Check, ChevronDown, Paperclip } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { BookUser, Check, ChevronDown, Paperclip } from 'lucide-react';
 
 import { ActionSheet } from '@/ui/ActionSheet';
 import { t } from '@/i18n';
@@ -7,6 +7,8 @@ import { MediaPickerSheet } from '@/shared/MediaPickerSheet';
 import { noteTitle } from '@/apps/notes/data';
 import { AttachmentStrip, DocPickerSheet, MemoPickerSheet, NotePickerSheet } from './Attachments';
 import type { MailAccount, MailAttachment } from './data';
+import { applySuggestion, suggestEmails } from './mailSuggest';
+import { SavedEmailsSheet } from './SavedEmails';
 
 const MAX_ATTACHMENTS = 5;
 
@@ -21,9 +23,10 @@ interface Props {
     onSaveDraft: (draft: { accountId: string; to: string[]; subject: string; body: string; attachments: MailAttachment[] }) => void;
     onCancel:    () => void;
     resumingDraft?: boolean;
+    savedEmails: string[];
 }
 
-export function Compose({ accounts, defaultAccountId, initialTo = '', initialSubject = '', initialBody = '', initialAttachments, onSend, onSaveDraft, onCancel, resumingDraft = false }: Props) {
+export function Compose({ accounts, defaultAccountId, initialTo = '', initialSubject = '', initialBody = '', initialAttachments, onSend, onSaveDraft, onCancel, resumingDraft = false, savedEmails }: Props) {
     const [accountId, setAccountId] = useState(() => {
         return accounts.some(a => a.id === defaultAccountId) ? defaultAccountId : accounts[0]?.id;
     });
@@ -36,12 +39,21 @@ export function Compose({ accounts, defaultAccountId, initialTo = '', initialSub
     const [attachPicker,  setAttachPicker]  = useState<'photo' | 'audio' | 'note' | 'document' | null>(null);
     const [exiting,       setExiting]       = useState(false);
     const [confirmCancel, setConfirmCancel] = useState(false);
+    const [savedPicker,   setSavedPicker]   = useState(false);
+
+    const suggestions = suggestEmails(to, savedEmails);
+    const suggestionsOpen = suggestions.length > 0;
+    // The last non-empty list keeps rendering while the panel collapses, so rows fade out
+    // in place instead of vanishing a frame before the animation.
+    const lastSuggestions = useRef<string[]>([]);
+    if (suggestionsOpen) lastSuggestions.current = suggestions;
+    const displayedSuggestions = suggestionsOpen ? suggestions : lastSuggestions.current;
 
     const account = accounts.find(a => a.id === accountId) ?? accounts[0];
     const canSend = to.trim().length > 0 && subject.trim().length > 0 && !!account;
-    // Prefilled content (a resumed draft, a reply quote) doesn't count: only the user's own
-    // edits are worth guarding, so an untouched compose cancels straight out.
-    const dirty = to !== initialTo || subject !== initialSubject || body !== initialBody
+    // Prefilled content (a resumed draft, a reply quote) doesn't count, and neither does the
+    // To field alone: only written work (subject, body, attachments) is worth guarding.
+    const dirty = subject !== initialSubject || body !== initialBody
         || JSON.stringify(attachments) !== JSON.stringify(initialAttachments ?? []);
 
     function addAttachments(added: MailAttachment[]) {
@@ -149,7 +161,36 @@ export function Compose({ accounts, defaultAccountId, initialTo = '', initialSub
                                 onChange={e => setTo(e.target.value)}
                                 className="flex-1 bg-transparent text-[18px] outline-none placeholder:text-ios-gray"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setSavedPicker(true)}
+                                aria-label={t('mail.savedEmails', 'Saved Emails')}
+                                className="shrink-0 text-ios-blue active:opacity-60"
+                            >
+                                <BookUser className="h-[20px] w-[20px]" strokeWidth={2} />
+                            </button>
                         </Row>
+                        <div
+                            aria-hidden={!suggestionsOpen}
+                            className="grid transition-[grid-template-rows,opacity] duration-200 ease-out"
+                            style={{ gridTemplateRows: suggestionsOpen ? '1fr' : '0fr', opacity: suggestionsOpen ? 1 : 0 }}
+                        >
+                            <div className="min-h-0 overflow-hidden">
+                                <Divider />
+                                {displayedSuggestions.map(s => (
+                                    <button
+                                        key={s}
+                                        type="button"
+                                        tabIndex={suggestionsOpen ? 0 : -1}
+                                        onClick={() => setTo(applySuggestion(to, s))}
+                                        className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-black/5 dark:active:bg-white/5"
+                                    >
+                                        <BookUser className="h-[18px] w-[18px] shrink-0 text-ios-gray" strokeWidth={2} />
+                                        <span className="truncate text-[16px] text-ios-blue">{s}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <Divider />
                         <Row label={t('mail.subjectLabel', 'Subject:')}>
                             <input
@@ -201,6 +242,20 @@ export function Compose({ accounts, defaultAccountId, initialTo = '', initialSub
                     </div>
                 </div>
             </div>
+
+            {savedPicker && (
+                <SavedEmailsSheet
+                    emails={savedEmails}
+                    onPick={email => {
+                        setTo(prev => {
+                            const base = prev.trim();
+                            if (base.toLowerCase().split(/[,;\s]+/).includes(email.toLowerCase())) return prev;
+                            return base.length > 0 ? `${base.replace(/[,;\s]+$/, '')}, ${email}` : email;
+                        });
+                    }}
+                    onClose={() => setSavedPicker(false)}
+                />
+            )}
 
             {attachSheet && (
                 <ActionSheet
